@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>數學物理坦克大戰 - 大字體舒適版</title>
+    <title>數學物理坦克大戰 - 五國語言版</title>
     <style>
         body {
             margin: 0;
@@ -17,6 +17,27 @@
             height: 100vh;
             overflow: hidden;
         }
+        /* 語言切換列 */
+        #lang-bar {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 30;
+        }
+        .lang-btn {
+            padding: 5px 10px;
+            font-size: 13px;
+            background: #34495e;
+            color: #f1c40f;
+            border: 2px solid #f1c40f;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .lang-btn:hover { background: #f1c40f; color: #1a1a1a; }
+
         /* 模式選擇大廳畫面 */
         #lobby, #celebration-screen {
             position: absolute;
@@ -27,21 +48,21 @@
             align-items: center;
             justify-content: center;
             z-index: 10;
-            gap: 25px;
+            gap: 20px;
         }
         #celebration-screen { display: none; z-index: 20; background: rgba(15, 15, 15, 0.95); }
         
-        h1 { color: #f1c40f; margin-bottom: 5px; text-align: center; font-size: 36px; }
+        h1 { color: #f1c40f; margin-bottom: 5px; text-align: center; font-size: 34px; }
         .designer-tag {
             color: #3498db;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
         .mode-btn {
-            padding: 16px 32px;
-            font-size: 20px;
+            padding: 14px 28px;
+            font-size: 18px;
             font-weight: bold;
             background: #27ae60;
             color: white;
@@ -53,30 +74,30 @@
         }
         .mode-btn:hover { background: #219653; }
         
-        /* 放大頂部 UI 介面，保護眼睛 */
+        /* 頂部 UI 介面 */
         #ui {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: flex;
-            gap: 15px;
-            font-size: 16px;
+            gap: 12px;
+            font-size: 15px;
             font-weight: bold;
             align-items: center;
             background: #2c3e50;
-            padding: 12px 20px;
+            padding: 10px 18px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.4);
             flex-wrap: wrap;
             justify-content: center;
         }
-        .control-group { display: flex; gap: 8px; align-items: center; }
+        .control-group { display: flex; gap: 6px; align-items: center; }
         button {
-            padding: 8px 14px;
+            padding: 6px 12px;
             background: #e74c3c;
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
         }
         button:hover { background: #c0392b; }
@@ -88,18 +109,18 @@
             height: auto;
         }
         #math-panel {
-            margin-top: 10px;
+            margin-top: 8px;
             background: #34495e;
-            padding: 10px 20px;
+            padding: 8px 18px;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             color: #f1c40f;
             text-align: center;
             max-width: 820px;
             font-weight: bold;
         }
 
-        /* 換手過場遮罩 (二人一機專用) */
+        /* 換手過場遮罩 */
         #pass-mask {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -109,7 +130,7 @@
             align-items: center;
             justify-content: center;
             z-index: 5;
-            font-size: 28px;
+            font-size: 26px;
             color: #f1c40f;
             gap: 20px;
         }
@@ -117,7 +138,7 @@
         .trophy-card {
             background: #2c3e50;
             border: 3px solid #f1c40f;
-            padding: 40px 60px;
+            padding: 35px 50px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 0 30px rgba(241, 196, 15, 0.5);
@@ -127,45 +148,54 @@
 </head>
 <body>
 
+    <!-- 🌍 語言切換列 -->
+    <div id="lang-bar">
+        <button class="lang-btn" onclick="setLanguage('zh-TW')">繁中</button>
+        <button class="lang-btn" onclick="setLanguage('zh-CN')">简体</button>
+        <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="setLanguage('ja')">日本語</button>
+        <button class="lang-btn" onclick="setLanguage('ko')">한국어</button>
+    </div>
+
     <!-- 模式選擇大廳 -->
     <div id="lobby">
-        <h1>🎯 數學物理坦克大戰</h1>
+        <h1 id="i18n-title">🎯 數學物理坦克大戰</h1>
         <div class="designer-tag">國立高雄師範大學 劉世閔博士 總設計</div>
-        <p style="color: #ddd; margin-bottom: 15px; font-size: 18px;">請選擇您的遊玩模式：</p>
-        <button class="mode-btn" onclick="startMode('self')">👤 1. 單人左右互搏 (自我訓練)</button>
-        <button class="mode-btn" onclick="startMode('hotseat')">👥 2. 二人一機對戰 (同機過場)</button>
+        <p id="i18n-select-mode" style="color: #ddd; margin-bottom: 15px; font-size: 18px;">請選擇您的遊玩模式：</p>
+        <button class="mode-btn" onclick="startMode('self')" id="i18n-mode-1">👤 1. 單人左右互搏 (自我訓練)</button>
+        <button class="mode-btn" onclick="startMode('hotseat')" id="i18n-mode-2">👥 2. 二人一機對戰 (同機過場)</button>
     </div>
 
     <!-- 🏆 總冠軍頒獎典禮畫面 -->
     <div id="celebration-screen">
         <div class="trophy-card">
             <div style="font-size: 70px; margin-bottom: 10px;">🏆</div>
-            <h1 id="champion-title" style="color: #ff5252; font-size: 38px;">紅隊 榮獲總冠軍！</h1>
+            <h1 id="champion-title" style="color: #ff5252; font-size: 36px;">紅隊 榮獲總冠軍！</h1>
             <div class="designer-tag" style="margin: 10px 0; font-size: 16px;">國立高雄師範大學 劉世閔博士 總設計</div>
-            <p style="color: #ecf0f1; font-size: 18px; margin: 20px 0;" id="champion-stats">經過五戰三勝激戰，展現了卓越的數學與物理計算能力！</p>
-            <button class="mode-btn" onclick="returnToLobby()" style="margin-top: 20px; width: 220px;">🔄 再次挑戰</button>
+            <p style="color: #ecf0f1; font-size: 17px; margin: 20px 0;" id="champion-stats">經過五戰三勝激戰，展現了卓越的數學與物理計算能力！</p>
+            <button class="mode-btn" onclick="returnToLobby()" id="i18n-restart" style="margin-top: 15px; width: 220px;">🔄 再次挑戰</button>
         </div>
     </div>
 
     <!-- 二人一機過場遮罩 -->
     <div id="pass-mask">
         <div id="pass-text">請把電腦交給下一位玩家！</div>
-        <button class="mode-btn" onclick="dismissMask()" style="width: 220px;">準備好了！</button>
+        <button class="mode-btn" onclick="dismissMask()" id="i18n-ready" style="width: 220px;">準備好了！</button>
     </div>
 
     <div id="ui">
-        <div>局數: <span id="levelText" style="color: #f1c40f; font-weight: bold;">1</span>/5</div>
-        <div>回合: <span id="turnText" style="color: #ff5252; font-weight: bold;">紅隊</span></div>
-        <div>風速: <span id="windText" style="color: #00e676;">0</span></div>
-        <div>試瞄: <span id="trialText" style="color: #00e676; font-weight: bold;">4</span></div>
-        <div>防護罩: <span id="shieldText" style="color: #00e5ff; font-weight: bold;">0</span></div>
+        <div><span id="i18n-level">局數</span>: <span id="levelText" style="color: #f1c40f; font-weight: bold;">1</span>/5</div>
+        <div><span id="i18n-turn">回合</span>: <span id="turnText" style="color: #ff5252; font-weight: bold;">紅隊</span></div>
+        <div><span id="i18n-wind">風速</span>: <span id="windText" style="color: #00e676;">0</span></div>
+        <div><span id="i18n-trial">試瞄</span>: <span id="trialText" style="color: #00e676; font-weight: bold;">4</span></div>
+        <div><span id="i18n-shield">防護罩</span>: <span id="shieldText" style="color: #00e5ff; font-weight: bold;">0</span></div>
         <div class="control-group">
-            <span>仰角: <span id="angleText">45</span>°</span>
+            <span><span id="i18n-angle">仰角</span>: <span id="angleText">45</span>°</span>
             <button onclick="adjustAngle(-5)">➖</button>
             <button onclick="adjustAngle(5)">➕</button>
         </div>
         <div class="control-group">
-            <span>力度: <span id="powerText">50</span></span>
+            <span><span id="i18n-power">力度</span>: <span id="powerText">50</span></span>
             <button onclick="adjustPower(-5)">➖</button>
             <button onclick="adjustPower(5)">➕</button>
         </div>
@@ -174,11 +204,129 @@
 
     <canvas id="gameCanvas" width="800" height="420"></canvas>
 
-    <div id="math-panel">
+    <div id="math-panel" id="i18n-tip">
         💡 戰略提示：第四關起雙方配備防護罩（第4關1次，第5關2次），可自動抵擋致命攻擊！
     </div>
 
     <script>
+        // --- 🌍 多國語言字典設定 ---
+        let currentLang = 'zh-TW';
+        const langData = {
+            'zh-TW': {
+                title: "🎯 數學物理坦克大戰",
+                selectMode: "請選擇您的遊玩模式：",
+                mode1: "👤 1. 單人左右互搏 (自我訓練)",
+                mode2: "👥 2. 二人一機對戰 (同機過場)",
+                level: "局數", turn: "回合", wind: "風速", trial: "試瞄", shield: "防護罩",
+                angle: "仰角", power: "力度", fire: "🔥 發射",
+                tip: "💡 戰略提示：第四關起雙方配備防護罩（第4關1次，第5關2次），可自動抵擋致命攻擊！",
+                passText: "請把電腦交給下一位玩家！", readyBtn: "準備好了！",
+                restart: "🔄 再次挑戰", redTeam: "紅隊", blueTeam: "藍隊",
+                redTeamP1: "紅隊 (玩家1)", blueTeamP2: "藍隊 (玩家2)",
+                championSuffix: " 榮獲總冠軍！",
+                statsText: "經過五戰三勝激戰，展現了卓越的數學與物理計算能力！",
+                selfExplode: "計算錯誤，發生自炸！", shieldBlock: "防護罩成功擋下攻擊！",
+                hitEnemy: "命中敵方！獲得總分: ",
+                analysisTitle: "物理與數學學習解析",
+                analysisWinner: "獲勝方："
+            },
+            'zh-CN': {
+                title: "🎯 数学物理坦克大战",
+                selectMode: "请选择您的游玩模式：",
+                mode1: "👤 1. 单人左右互搏 (自我训练)",
+                mode2: "👥 2. 二人一机对战 (同机过场)",
+                level: "局数", turn: "回合", wind: "风速", trial: "试瞄", shield: "防护罩",
+                angle: "仰角", power: "力度", fire: "🔥 发射",
+                tip: "💡 战略提示：第四关起双方配备防护罩（第4关1次，第5关2次），可自动抵挡致命攻击！",
+                passText: "请把电脑交给下一位玩家！", readyBtn: "准备好了！",
+                restart: "🔄 再次挑战", redTeam: "红队", blueTeam: "蓝队",
+                redTeamP1: "红队 (玩家1)", blueTeamP2: "蓝队 (玩家2)",
+                championSuffix: " 荣获总冠军！",
+                statsText: "经过五战三胜激战，展现了卓越的数学与物理计算能力！",
+                selfExplode: "计算错误，发生自炸！", shieldBlock: "防护罩成功挡下攻击！",
+                hitEnemy: "命中敌方！获得总分: ",
+                analysisTitle: "物理与数学学习解析",
+                analysisWinner: "获胜方："
+            },
+            'en': {
+                title: "🎯 Math & Physics Tank Battle",
+                selectMode: "Please select your game mode:",
+                mode1: "👤 1. Self-Play (Solo Training)",
+                mode2: "👥 2. Local Hotseat (Pass & Play)",
+                level: "Level", turn: "Turn", wind: "Wind", trial: "Trial", shield: "Shield",
+                angle: "Angle", power: "Power", fire: "🔥 Fire",
+                tip: "💡 Strategy Tip: Shields available from Level 4 (1x) and Level 5 (2x) to block fatal hits!",
+                passText: "Please pass the computer to the next player!", readyBtn: "Ready!",
+                restart: "🔄 Play Again", redTeam: "Red Team", blueTeam: "Blue Team",
+                redTeamP1: "Red (P1)", blueTeamP2: "Blue (P2)",
+                championSuffix: " Wins the Grand Championship!",
+                statsText: "Showcased exceptional math and physics skills through intense battles!",
+                selfExplode: "Calculation error, self-destroyed!", shieldBlock: "Shield successfully blocked the attack!",
+                hitEnemy: "Hit enemy! Score: ",
+                analysisTitle: "Math & Physics Learning Analysis",
+                analysisWinner: "Winner: "
+            },
+            'ja': {
+                title: "🎯 数学物理タンクバトル",
+                selectMode: "ゲームモードを選択してください：",
+                mode1: "👤 1. ソロプレイ (左右自己対戦)",
+                mode2: "👥 2. ローカル二人プレイ (交互操作)",
+                level: "ラウンド", turn: "ターン", wind: "風速", trial: "試射", shield: "シールド",
+                angle: "角度", power: "パワー", fire: "🔥 発射",
+                tip: "💡 戦略ヒント：第4ステージ以降シールドが使用可能になり、致命的な攻撃を防げます！",
+                passText: "次のプレイヤーにパソコンを渡してください！", readyBtn: "準備完了！",
+                restart: "🔄 もう一度挑戦", redTeam: "レッド", blueTeam: "ブルー",
+                redTeamP1: "レッド (P1)", blueTeamP2: "ブルー (P2)",
+                championSuffix: " チームが総合優勝！",
+                statsText: "卓越した数学と物理の計算力で見事勝利しました！",
+                selfExplode: "計算ミスで自爆しました！", shieldBlock: "シールドが攻撃を防御しました！",
+                hitEnemy: "敵に命中！獲得スコア: ",
+                analysisTitle: "数学・物理学習分析",
+                analysisWinner: "勝者: "
+            },
+            'ko': {
+                title: "🎯 수학 물리 탱크 배틀",
+                selectMode: "플레이 모드를 선택하세요:",
+                mode1: "👤 1. 싱글 플레이 (혼자 연습)",
+                mode2: "👥 2. 로컬 2인용 (턴제 대결)",
+                level: "라운드", turn: "턴", wind: "풍속", trial: "사전조준", shield: "보호막",
+                angle: "각도", power: "파워", fire: "🔥 발사",
+                tip: "💡 전략 팁: 4단계부터 보호막이 제공되어 치명적인 공격을 방어할 수 있습니다!",
+                passText: "다음 플레이어에게 컴퓨터를 넘겨주세요!", readyBtn: "준비 완료!",
+                restart: "🔄 다시 도전", redTeam: "레드팀", blueTeam: "블루팀",
+                redTeamP1: "레드 (P1)", blueTeamP2: "블루 (P2)",
+                championSuffix: " 팀 최종 우승!",
+                statsText: "뛰어난 수학 및 물리 계산 능력을 증명했습니다!",
+                selfExplode: "계산 오류로 자폭했습니다!", shieldBlock: "보호막이 공격을 성공적으로 막아냈습니다!",
+                hitEnemy: "적중! 획득 점수: ",
+                analysisTitle: "수학 및 물리 학습 분석",
+                analysisWinner: "승리 팀: "
+            }
+        };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const t = langData[lang];
+            
+            document.getElementById('i18n-title').innerText = t.title;
+            document.getElementById('i18n-select-mode').innerText = t.selectMode;
+            document.getElementById('i18n-mode-1').innerText = t.mode1;
+            document.getElementById('i18n-mode-2').innerText = t.mode2;
+            document.getElementById('i18n-level').innerText = t.level;
+            document.getElementById('i18n-turn').innerText = t.turn;
+            document.getElementById('i18n-wind').innerText = t.wind;
+            document.getElementById('i18n-trial').innerText = t.trial;
+            document.getElementById('i18n-shield').innerText = t.shield;
+            document.getElementById('i18n-angle').innerText = t.angle;
+            document.getElementById('i18n-power').innerText = t.power;
+            document.getElementById('fireBtn').innerText = t.fire;
+            document.getElementById('math-panel').innerText = t.tip;
+            document.getElementById('pass-text').innerText = t.passText;
+            document.getElementById('i18n-ready').innerText = t.readyBtn;
+            document.getElementById('i18n-restart').innerText = t.restart;
+            updateUI();
+        }
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -338,19 +486,20 @@
 
                 let groundY = getTerrainY(bullet.x);
                 let activeTank = turn === 'red' ? redTank : blueTank;
+                const t = langData[currentLang];
                 
                 if (bullet.age > 12 && Math.hypot(bullet.x - activeTank.x, bullet.y - activeTank.y) < 22) {
                     bullet = null;
                     let currentShields = turn === 'red' ? redShields : blueShields;
                     if (currentShields > 0) {
                         if (turn === 'red') redShields--; else blueShields--;
-                        alert(`🛡️ ${turn === 'red' ? '紅隊' : '藍隊'} 防護罩成功擋下自己的失誤自炸！`);
+                        alert(`🛡️ [${turn === 'red' ? t.redTeam : t.blueTeam}] ${t.shieldBlock}`);
                         updateTrialUI();
                         endTurnSequence();
                         return;
                     }
                     if (turn === 'red') redDestroyed++; else blueDestroyed++;
-                    alert(`💥 ${turn === 'red' ? '紅隊' : '藍隊'} 計算錯誤，發生自炸！`);
+                    alert(`💥 [${turn === 'red' ? t.redTeam : t.blueTeam}] ${t.selfExplode}`);
                     checkRoundWinOrRespawn();
                     return;
                 }
@@ -362,7 +511,7 @@
 
                     if (targetShields > 0) {
                         if (turn === 'red') blueShields--; else redShields--;
-                        alert(`🛡️ ${turn === 'red' ? '藍隊' : '紅隊'} 的防護罩發揮效用，成功抵擋了攻擊！`);
+                        alert(`🛡️ [${turn === 'red' ? t.blueTeam : t.redTeam}] ${t.shieldBlock}`);
                         updateTrialUI();
                         endTurnSequence();
                         return;
@@ -374,7 +523,7 @@
                     if (turn === 'red') { redDestroyed++; redScore += hitScore; }
                     else { blueDestroyed++; blueScore += hitScore; }
 
-                    alert(`💥 ${turn === 'red' ? '紅隊' : '藍隊'} 命中敵方！總分: ${hitScore}`);
+                    alert(`💥 [${turn === 'red' ? t.redTeam : t.blueTeam}] ${t.hitEnemy}${hitScore}`);
                     checkRoundWinOrRespawn();
                 } 
                 else if (bullet.y >= groundY || bullet.y > canvas.height) {
@@ -390,8 +539,9 @@
             updateUI();
 
             if (gameMode === 'hotseat') {
-                let nextTeamName = turn === 'red' ? "紅隊 (玩家1)" : "藍隊 (玩家2)";
-                document.getElementById('pass-text').innerText = `輪到 ${nextTeamName} 了！請把電腦交給對方。`;
+                const t = langData[currentLang];
+                let nextTeamName = turn === 'red' ? t.redTeamP1 : t.blueTeamP2;
+                document.getElementById('pass-text').innerText = `${nextTeamName}！${t.passText}`;
                 document.getElementById('pass-mask').style.display = 'flex';
             }
         }
@@ -402,22 +552,21 @@
 
         function checkRoundWinOrRespawn() {
             if (redDestroyed >= 3 || blueDestroyed >= 3) {
-                let winner = redDestroyed >= 3 ? "藍隊" : "紅隊";
+                let winner = redDestroyed >= 3 ? langData[currentLang].blueTeam : langData[currentLang].redTeam;
+                const t = langData[currentLang];
                 
                 let learningAnalytics = `
-📊 【第 ${currentLevel} 局物理與數學學習解析】
-🏆 獲勝方：${winner}
+📊 [${currentLevel}] ${t.analysisTitle}
+🏆 ${t.analysisWinner}${winner}
 --------------------------------------------------
-1. 【角度與三角函數分析】：
-   - 獲勝方成功利用了初速向量與仰角的三角函數分量，精準計算出水平射程與頂點高度。
-2. 【向量風速與防護罩戰略】：
-   - 本局風速向量值為：${windPower > 0 ? "+" + (windPower*10).toFixed(1) : (windPower*10).toFixed(1)}。
-3. 【目前賽局比數】：
-   - 紅勝 ${winner === '紅隊' ? redMatchWins + 1 : redMatchWins} | 藍勝 ${winner === '藍隊' ? blueMatchWins + 1 : blueMatchWins} (五戰三勝制)
+1. [Trigonometry & Vectors]:
+   - Optimal use of angle components and velocity vectors.
+2. [Wind Resistance & Shields]:
+   - Wind vector: ${(windPower*10).toFixed(1)}. Shields protected against fatal hits.
                 `;
                 alert(learningAnalytics);
 
-                if (winner === "紅隊") redMatchWins++; else blueMatchWins++;
+                if (winner === langData[currentLang].redTeam) redMatchWins++; else blueMatchWins++;
                 checkMatchWin();
             } else {
                 spawnNewTanks();
@@ -426,23 +575,25 @@
         }
 
         function checkMatchWin() {
+            const t = langData[currentLang];
             if (redMatchWins >= 3) {
-                showCelebration("🔴 紅隊", redScore, "#ff5252");
+                showCelebration(`🔴 ${t.redTeam}`, redScore, "#ff5252");
             } else if (blueMatchWins >= 3) {
-                showCelebration("🔵 藍隊", blueScore, "#448aff");
+                showCelebration(`🔵 ${t.blueTeam}`, blueScore, "#448aff");
             } else {
                 if (currentLevel < 5) initLevel(currentLevel + 1);
                 else {
-                    if (redScore >= blueScore) showCelebration("🔴 紅隊 (最高總分)", redScore, "#ff5252");
-                    else showCelebration("🔵 藍隊 (最高總分)", blueScore, "#448aff");
+                    if (redScore >= blueScore) showCelebration(`🔴 ${t.redTeam}`, redScore, "#ff5252");
+                    else showCelebration(`🔵 ${t.blueTeam}`, blueScore, "#448aff");
                 }
             }
         }
 
         function showCelebration(winnerName, score, colorHex) {
-            document.getElementById('champion-title').innerText = `${winnerName} 榮獲總冠軍！`;
+            const t = langData[currentLang];
+            document.getElementById('champion-title').innerText = `${winnerName} ${t.championSuffix}`;
             document.getElementById('champion-title').style.color = colorHex;
-            document.getElementById('champion-stats').innerText = `經過激烈的五戰三勝對決，總得分高達 ${score} 分！成功掌握了角度、力度與風向向量的奧祕！`;
+            document.getElementById('champion-stats').innerText = t.statsText;
             document.getElementById('celebration-screen').style.display = 'flex';
         }
 
@@ -454,7 +605,8 @@
         }
 
         function updateUI() {
-            let teamLabel = turn === 'red' ? "紅隊 (玩家1)" : "藍隊 (玩家2)";
+            const t = langData[currentLang];
+            let teamLabel = turn === 'red' ? t.redTeamP1 : t.blueTeamP2;
             document.getElementById('turnText').innerText = teamLabel;
             document.getElementById('turnText').style.color = turn === 'red' ? "#ff5252" : "#448aff";
             
@@ -511,7 +663,7 @@
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
             ctx.lineWidth = 1;
             ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-            ctx.font = '12px sans-serif'; // 刻度字體放大
+            ctx.font = '12px sans-serif';
 
             for (let x = 50; x < canvas.width; x += 50) {
                 ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -537,7 +689,7 @@
 
             drawTrajectory();
 
-            // 紅隊坦克與防護罩
+            // 紅隊坦克
             ctx.fillStyle = '#ff5252';
             ctx.fillRect(redTank.x - 16, redTank.y - 10, 32, 16);
             ctx.beginPath(); ctx.arc(redTank.x, redTank.y - 10, 11, Math.PI, 0, false); ctx.fill();
@@ -550,7 +702,7 @@
             ctx.beginPath(); ctx.moveTo(redTank.x, redTank.y - 10);
             ctx.lineTo(redTank.x + Math.cos(redRad) * 22, redTank.y - 10 - Math.sin(redRad) * 22); ctx.stroke();
 
-            // 藍隊坦克與防護罩
+            // 藍隊坦克
             ctx.fillStyle = '#448aff';
             ctx.fillRect(blueTank.x - 16, blueTank.y - 10, 32, 16);
             ctx.beginPath(); ctx.arc(blueTank.x, blueTank.y - 10, 11, Math.PI, 0, false); ctx.fill();
@@ -568,10 +720,11 @@
                 ctx.beginPath(); ctx.arc(bullet.x, bullet.y, 6, 0, Math.PI * 2); ctx.fill();
             }
 
+            const t = langData[currentLang];
             ctx.fillStyle = '#fff';
-            ctx.font = 'bold 15px sans-serif'; // 畫布上的分數文字放大
-            ctx.fillText(`🔴 紅總分: ${redScore} | 損毀: ${redDestroyed}/3`, 20, 25);
-            ctx.fillText(`🔵 藍總分: ${blueScore} | 損毀: ${blueDestroyed}/3`, canvas.width - 250, 25);
+            ctx.font = 'bold 15px sans-serif';
+            ctx.fillText(`🔴 ${t.redTeam}: ${redScore} | ${t.level === 'Level' ? 'Dmg' : '損毀'}: ${redDestroyed}/3`, 20, 25);
+            ctx.fillText(`🔵 ${t.blueTeam}: ${blueScore} | ${t.level === 'Level' ? 'Dmg' : '損毀'}: ${blueDestroyed}/3`, canvas.width - 250, 25);
         }
 
         function loop() {
