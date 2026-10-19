@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>數學物理坦克大戰 - 防護罩戰略版</title>
+    <title>數學物理坦克大戰 - 大字體舒適版</title>
     <style>
         body {
             margin: 0;
@@ -27,53 +27,56 @@
             align-items: center;
             justify-content: center;
             z-index: 10;
-            gap: 20px;
+            gap: 25px;
         }
         #celebration-screen { display: none; z-index: 20; background: rgba(15, 15, 15, 0.95); }
         
-        h1 { color: #f1c40f; margin-bottom: 5px; text-align: center; }
+        h1 { color: #f1c40f; margin-bottom: 5px; text-align: center; font-size: 36px; }
         .designer-tag {
             color: #3498db;
-            font-size: 15px;
+            font-size: 18px;
             font-weight: bold;
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
         .mode-btn {
-            padding: 12px 24px;
-            font-size: 16px;
+            padding: 16px 32px;
+            font-size: 20px;
             font-weight: bold;
             background: #27ae60;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            width: 280px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            width: 340px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
         }
         .mode-btn:hover { background: #219653; }
         
+        /* 放大頂部 UI 介面，保護眼睛 */
         #ui {
-            margin-bottom: 6px;
+            margin-bottom: 10px;
             display: flex;
-            gap: 10px;
-            font-size: 13px;
+            gap: 15px;
+            font-size: 16px;
+            font-weight: bold;
             align-items: center;
             background: #2c3e50;
-            padding: 8px 12px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
             flex-wrap: wrap;
             justify-content: center;
         }
-        .control-group { display: flex; gap: 5px; align-items: center; }
+        .control-group { display: flex; gap: 8px; align-items: center; }
         button {
-            padding: 4px 8px;
+            padding: 8px 14px;
             background: #e74c3c;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 16px;
             font-weight: bold;
         }
         button:hover { background: #c0392b; }
@@ -85,39 +88,40 @@
             height: auto;
         }
         #math-panel {
-            margin-top: 6px;
+            margin-top: 10px;
             background: #34495e;
-            padding: 6px 15px;
-            border-radius: 6px;
-            font-size: 13px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 15px;
             color: #f1c40f;
             text-align: center;
-            max-width: 800px;
+            max-width: 820px;
+            font-weight: bold;
         }
 
         /* 換手過場遮罩 (二人一機專用) */
         #pass-mask {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 5;
-            font-size: 24px;
+            font-size: 28px;
             color: #f1c40f;
-            gap: 15px;
+            gap: 20px;
         }
 
         .trophy-card {
             background: #2c3e50;
             border: 3px solid #f1c40f;
-            padding: 30px 50px;
+            padding: 40px 60px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 0 30px rgba(241, 196, 15, 0.5);
-            max-width: 600px;
+            max-width: 650px;
         }
     </style>
 </head>
@@ -127,7 +131,7 @@
     <div id="lobby">
         <h1>🎯 數學物理坦克大戰</h1>
         <div class="designer-tag">國立高雄師範大學 劉世閔博士 總設計</div>
-        <p style="color: #ccc; margin-bottom: 10px;">請選擇您的遊玩模式：</p>
+        <p style="color: #ddd; margin-bottom: 15px; font-size: 18px;">請選擇您的遊玩模式：</p>
         <button class="mode-btn" onclick="startMode('self')">👤 1. 單人左右互搏 (自我訓練)</button>
         <button class="mode-btn" onclick="startMode('hotseat')">👥 2. 二人一機對戰 (同機過場)</button>
     </div>
@@ -135,18 +139,18 @@
     <!-- 🏆 總冠軍頒獎典禮畫面 -->
     <div id="celebration-screen">
         <div class="trophy-card">
-            <div style="font-size: 60px; margin-bottom: 10px;">🏆</div>
-            <h1 id="champion-title" style="color: #ff5252; font-size: 32px;">紅隊 榮獲總冠軍！</h1>
-            <div class="designer-tag" style="margin: 8px 0;">國立高雄師範大學 劉世閔博士 總設計</div>
-            <p style="color: #ecf0f1; font-size: 15px; margin: 15px 0;" id="champion-stats">經過五戰三勝激戰，展現了卓越的數學與物理計算能力！</p>
-            <button class="mode-btn" onclick="returnToLobby()" style="margin-top: 20px;">🔄 再次挑戰大賽</button>
+            <div style="font-size: 70px; margin-bottom: 10px;">🏆</div>
+            <h1 id="champion-title" style="color: #ff5252; font-size: 38px;">紅隊 榮獲總冠軍！</h1>
+            <div class="designer-tag" style="margin: 10px 0; font-size: 16px;">國立高雄師範大學 劉世閔博士 總設計</div>
+            <p style="color: #ecf0f1; font-size: 18px; margin: 20px 0;" id="champion-stats">經過五戰三勝激戰，展現了卓越的數學與物理計算能力！</p>
+            <button class="mode-btn" onclick="returnToLobby()" style="margin-top: 20px; width: 220px;">🔄 再次挑戰</button>
         </div>
     </div>
 
     <!-- 二人一機過場遮罩 -->
     <div id="pass-mask">
         <div id="pass-text">請把電腦交給下一位玩家！</div>
-        <button class="mode-btn" onclick="dismissMask()" style="width: 180px;">準備好了！</button>
+        <button class="mode-btn" onclick="dismissMask()" style="width: 220px;">準備好了！</button>
     </div>
 
     <div id="ui">
@@ -206,10 +210,7 @@
 
         let redTrialsLeft = 4;
         let blueTrialsLeft = 4;
-        
-        // 🛡️ 防護罩變數初始化 (第4關1次，第5關2次)
-        let redShields = 0;
-        let blueShields = 0;
+        let redShields = 0, blueShields = 0;
 
         let bulletMaxHeight = 0, launchBaseY = 320;
         let bullet = null;
@@ -255,7 +256,6 @@
             redTrialsLeft = initialTrials;
             blueTrialsLeft = initialTrials;
 
-            // 🛡️ 根據關卡設定防護罩次數：第4關1次，第5關2次
             redShields = level >= 5 ? 2 : (level >= 4 ? 1 : 0);
             blueShields = level >= 5 ? 2 : (level >= 4 ? 1 : 0);
 
@@ -339,7 +339,6 @@
                 let groundY = getTerrainY(bullet.x);
                 let activeTank = turn === 'red' ? redTank : blueTank;
                 
-                // 檢查自炸
                 if (bullet.age > 12 && Math.hypot(bullet.x - activeTank.x, bullet.y - activeTank.y) < 22) {
                     bullet = null;
                     let currentShields = turn === 'red' ? redShields : blueShields;
@@ -356,16 +355,14 @@
                     return;
                 }
 
-                // 檢查擊中敵方
                 let opponentTank = turn === 'red' ? blueTank : redTank;
                 if (Math.hypot(bullet.x - opponentTank.x, bullet.y - opponentTank.y) < 22) {
                     bullet = null;
                     let targetShields = turn === 'red' ? blueShields : redShields;
 
-                    // 🛡️ 防護罩攔截邏輯
                     if (targetShields > 0) {
                         if (turn === 'red') blueShields--; else redShields--;
-                        alert(`🛡️ ${turn === 'red' ? '藍隊' : '紅隊'} 的防護罩發揮效用，成功抵擋了攻擊！(剩餘防護罩: ${turn === 'red' ? blueShields : redShields})`);
+                        alert(`🛡️ ${turn === 'red' ? '藍隊' : '紅隊'} 的防護罩發揮效用，成功抵擋了攻擊！`);
                         updateTrialUI();
                         endTurnSequence();
                         return;
@@ -415,7 +412,6 @@
    - 獲勝方成功利用了初速向量與仰角的三角函數分量，精準計算出水平射程與頂點高度。
 2. 【向量風速與防護罩戰略】：
    - 本局風速向量值為：${windPower > 0 ? "+" + (windPower*10).toFixed(1) : (windPower*10).toFixed(1)}。
-   - 高難度關卡防護罩可有效抵擋致命攻擊，提升戰術容錯率！
 3. 【目前賽局比數】：
    - 紅勝 ${winner === '紅隊' ? redMatchWins + 1 : redMatchWins} | 藍勝 ${winner === '藍隊' ? blueMatchWins + 1 : blueMatchWins} (五戰三勝制)
                 `;
@@ -453,8 +449,6 @@
         function updateTrialUI() {
             let currentTrials = turn === 'red' ? redTrialsLeft : blueTrialsLeft;
             document.getElementById('trialText').innerText = currentTrials;
-            
-            // 更新當前回合隊伍的剩餘防護罩顯示
             let currentShields = turn === 'red' ? redShields : blueShields;
             document.getElementById('shieldText').innerText = currentShields;
         }
@@ -514,14 +508,14 @@
         }
 
         function drawCoordinateGrid() {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
             ctx.lineWidth = 1;
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.font = '10px sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.font = '12px sans-serif'; // 刻度字體放大
 
             for (let x = 50; x < canvas.width; x += 50) {
                 ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-                ctx.fillText(x, x - 10, canvas.height - 5);
+                ctx.fillText(x, x - 12, canvas.height - 5);
             }
             for (let y = 50; y < canvas.height; y += 50) {
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
@@ -543,7 +537,7 @@
 
             drawTrajectory();
 
-            // 紅隊坦克與防護罩外框
+            // 紅隊坦克與防護罩
             ctx.fillStyle = '#ff5252';
             ctx.fillRect(redTank.x - 16, redTank.y - 10, 32, 16);
             ctx.beginPath(); ctx.arc(redTank.x, redTank.y - 10, 11, Math.PI, 0, false); ctx.fill();
@@ -556,7 +550,7 @@
             ctx.beginPath(); ctx.moveTo(redTank.x, redTank.y - 10);
             ctx.lineTo(redTank.x + Math.cos(redRad) * 22, redTank.y - 10 - Math.sin(redRad) * 22); ctx.stroke();
 
-            // 藍隊坦克與防護罩外框
+            // 藍隊坦克與防護罩
             ctx.fillStyle = '#448aff';
             ctx.fillRect(blueTank.x - 16, blueTank.y - 10, 32, 16);
             ctx.beginPath(); ctx.arc(blueTank.x, blueTank.y - 10, 11, Math.PI, 0, false); ctx.fill();
@@ -571,13 +565,13 @@
 
             if (bullet) {
                 ctx.fillStyle = '#f1c40f';
-                ctx.beginPath(); ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(bullet.x, bullet.y, 6, 0, Math.PI * 2); ctx.fill();
             }
 
             ctx.fillStyle = '#fff';
-            ctx.font = 'bold 13px sans-serif';
+            ctx.font = 'bold 15px sans-serif'; // 畫布上的分數文字放大
             ctx.fillText(`🔴 紅總分: ${redScore} | 損毀: ${redDestroyed}/3`, 20, 25);
-            ctx.fillText(`🔵 藍總分: ${blueScore} | 損毀: ${blueDestroyed}/3`, canvas.width - 230, 25);
+            ctx.fillText(`🔵 藍總分: ${blueScore} | 損毀: ${blueDestroyed}/3`, canvas.width - 250, 25);
         }
 
         function loop() {
