@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>數學物理坦克大戰 - 新手引導商店版</title>
+    <title>數學物理坦克大戰 - 中央光學靶標與動態鎖定版</title>
     <style>
         body {
             margin: 0;
@@ -95,7 +95,6 @@
         }
         .shop-card h3 { color: #00e5ff; margin-top: 0; font-size: 15px; }
         
-        /* 新手推薦標籤 */
         .beginner-badge {
             position: absolute;
             top: -10px;
@@ -109,7 +108,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* 買得起與買不起按鈕動態樣式 */
         .shop-card button {
             margin-top: 10px;
             width: 100%;
@@ -161,16 +159,18 @@
             display: block;
         }
 
+        /* 🎯 將光學十字靶標瞄準鏡移至畫面上方中央，避免遮擋雙方比分 */
         #scope-hud {
             position: absolute;
             top: 15px;
-            right: 15px;
-            width: 140px;
-            height: 140px;
-            background: rgba(10, 30, 10, 0.85);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 130px;
+            background: rgba(10, 30, 10, 0.88);
             border: 3px solid #00ff66;
             border-radius: 50%;
-            box-shadow: inset 0 0 15px rgba(0, 255, 102, 0.6), 0 0 10px rgba(0,0,0,0.8);
+            box-shadow: inset 0 0 15px rgba(0, 255, 102, 0.6), 0 0 12px rgba(0,0,0,0.9);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -180,18 +180,32 @@
         }
         .scope-cross-h { position: absolute; width: 100%; height: 2px; background: rgba(0, 255, 102, 0.8); }
         .scope-cross-v { position: absolute; height: 100%; width: 2px; background: rgba(0, 255, 102, 0.8); }
+        
+        /* 敵方被瞄準時的模擬影像（坦克造型投影） */
         #scope-target-shadow {
             position: absolute;
-            width: 16px;
-            height: 10px;
-            background: rgba(255, 82, 82, 0.9);
-            border-radius: 3px;
+            width: 32px;
+            height: 18px;
+            background: #ff5252;
+            border-radius: 4px;
             display: none;
-            box-shadow: 0 0 8px #ff5252;
+            box-shadow: 0 0 10px #ff5252, inset 0 0 5px #fff;
+            border: 1px solid #fff;
         }
+        /* 坦克砲管模擬投影 */
+        #scope-target-shadow::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            right: -8px;
+            width: 10px;
+            height: 4px;
+            background: #ff5252;
+        }
+
         .scope-text {
-            position: absolute; bottom: 12px; font-size: 10px; color: #00ff66;
-            font-family: monospace; font-weight: bold; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 3px;
+            position: absolute; bottom: 10px; font-size: 10px; color: #00ff66;
+            font-family: monospace; font-weight: bold; background: rgba(0,0,0,0.7); padding: 1px 5px; border-radius: 3px;
         }
 
         #math-panel {
@@ -249,7 +263,6 @@
         <button class="mode-btn" onclick="startMode('hotseat')" id="i18n-mode-2">👥 2. 二人一機對戰 (同機過場)</button>
     </div>
 
-    <!-- 🛒 具備新手引導與點數狀態顯色的戰術補給站 -->
     <div id="shop-screen">
         <h1 style="color: #00e5ff;">🛒 戰術科技補給站 (採購倒數: <span id="shop-timer" style="color: #ff5252;">30</span>秒)</h1>
         <div class="designer-tag">國立高雄師範大學 劉世閔博士 總設計</div>
@@ -305,16 +318,18 @@
 
     <div class="game-container">
         <canvas id="gameCanvas" width="800" height="420"></canvas>
+        <!-- 🎯 中央光學十字靶標視窗（絕不遮擋雙方比分） -->
         <div id="scope-hud">
             <div class="scope-cross-h"></div>
             <div class="scope-cross-v"></div>
+            <!-- 進入射程時呈現的敵方戰車模擬投影影像 -->
             <div id="scope-target-shadow"></div>
             <div class="scope-text" id="scopeStatus">LOCK: OFF</div>
         </div>
     </div>
 
     <div id="math-panel">
-        💡 新手引導提示：商店備有新手推薦裝備與即時點數顯色，助您輕鬆上手！
+        💡 介面優化提示：光學瞄準鏡已移至中央，進入有效射程時將即時呈現敵方戰車模擬投影影像！
     </div>
 
     <script>
@@ -346,7 +361,7 @@
                 level: "Level", turn: "Turn", wind: "Wind", trial: "Trial", shield: "Shield",
                 angle: "Angle", power: "Power", fire: "🔥 Fire",
                 passText: "Please pass the computer to the next player!", readyBtn: "Ready!", restart: "🔄 Play Again",
-                redTeam: "Red Team", blueTeam: "Blue Team", redTeamP1: "Red (P1)", redTeamP2: "Blue (P2)",
+                redTeam: "Red Team", blueTeam: "Blue Team", redTeamP1: "Red (P1)", blueTeamP2: "Blue (P2)",
                 championSuffix: " Wins the Grand Championship!", selfExplode: "Calculation error, self-destroyed!", shieldBlock: "Shield successfully blocked the attack!",
                 hitEnemy: "Hit enemy! Score: ", redRoundWin: "🔴 Red destroyed 3 Blue tanks. Red wins the round!", blueRoundWin: "🔵 Blue destroyed 3 Red tanks. Blue wins the round!"
             },
@@ -734,7 +749,6 @@
             }, 1000);
         }
 
-        // 🎨 渲染裝備卡片，並根據當前積分動態切換買得起(綠色)與買不起(灰階)的按鈕狀態
         function renderTeamShop(team, containerId) {
             let container = document.getElementById(containerId);
             let score = team === 'red' ? redScore : blueScore;
@@ -778,7 +792,6 @@
 
             if (team === 'red') redScore -= cost; else blueScore -= cost;
 
-            // 即時更新點數與刷新雙方商店按鈕狀態
             document.getElementById('red-shop-score').innerText = redScore;
             document.getElementById('blue-shop-score').innerText = blueScore;
             renderTeamShop('red', 'red-shop-cards');
@@ -831,7 +844,7 @@
             const t = langData[currentLang];
             document.getElementById('champion-title').innerText = `${winnerName} ${t.championSuffix}`;
             document.getElementById('champion-title').style.color = colorHex;
-            document.getElementById('champion-stats').innerText = `總得分高達 ${score} 分！新手友善引導與總分決勝機制下的最終王者！`;
+            document.getElementById('champion-stats').innerText = `總得分高達 ${score} 分！中央光學靶標與動態戰車鎖定下的終極王者！`;
             document.getElementById('celebration-screen').style.display = 'flex';
         }
 
@@ -861,6 +874,7 @@
             updateTrialUI();
         }
 
+        // 🎯 檢測是否進入有效射程，並在中央靶標視窗呈現戰車被瞄準的模擬影像
         function checkTargetLockInScope() {
             let tank = turn === 'red' ? redTank : blueTank;
             let opponent = turn === 'red' ? blueTank : redTank;
@@ -908,8 +922,8 @@
             }
 
             if (locked) {
-                shadowEl.style.display = 'block';
-                statusEl.innerText = "LOCK: TARGET";
+                shadowEl.style.display = 'block'; // 顯現敵方戰車模擬投影影像
+                statusEl.innerText = "TARGET LOCKED";
                 statusEl.style.color = "#ff5252";
             } else {
                 shadowEl.style.display = 'none';
