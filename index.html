@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>數學物理坦克大戰 - 終極五裝備科技樹版</title>
+    <title>數學物理坦克大戰 - 新手引導商店版</title>
     <style>
         body {
             margin: 0;
@@ -78,29 +78,51 @@
             gap: 15px;
             flex-wrap: wrap;
             justify-content: center;
-            max-width: 900px;
+            max-width: 980px;
         }
         .shop-card {
             background: #2c3e50;
             border: 2px solid #f1c40f;
             padding: 15px;
             border-radius: 10px;
-            width: 200px;
+            width: 170px;
             text-align: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            position: relative;
         }
-        .shop-card h3 { color: #00e5ff; margin-top: 0; font-size: 16px; }
+        .shop-card h3 { color: #00e5ff; margin-top: 0; font-size: 15px; }
+        
+        /* 新手推薦標籤 */
+        .beginner-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #e74c3c;
+            color: white;
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 買得起與買不起按鈕動態樣式 */
         .shop-card button {
             margin-top: 10px;
-            background: #e67e22;
             width: 100%;
             padding: 8px;
             font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
         }
-        .shop-card button:hover { background: #d35400; }
+        .btn-affordable { background: #27ae60; color: white; }
+        .btn-affordable:hover { background: #219653; }
+        .btn-unaffordable { background: #7f8c8d; color: #bdc3c7; cursor: not-allowed; opacity: 0.6; }
 
         #ui {
             margin-bottom: 8px;
@@ -145,10 +167,10 @@
             right: 15px;
             width: 140px;
             height: 140px;
-            background: rgba(10, 30, 10, 0.75);
+            background: rgba(10, 30, 10, 0.85);
             border: 3px solid #00ff66;
             border-radius: 50%;
-            box-shadow: inset 0 0 15px rgba(0, 255, 102, 0.5), 0 0 10px rgba(0,0,0,0.8);
+            box-shadow: inset 0 0 15px rgba(0, 255, 102, 0.6), 0 0 10px rgba(0,0,0,0.8);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -158,6 +180,15 @@
         }
         .scope-cross-h { position: absolute; width: 100%; height: 2px; background: rgba(0, 255, 102, 0.8); }
         .scope-cross-v { position: absolute; height: 100%; width: 2px; background: rgba(0, 255, 102, 0.8); }
+        #scope-target-shadow {
+            position: absolute;
+            width: 16px;
+            height: 10px;
+            background: rgba(255, 82, 82, 0.9);
+            border-radius: 3px;
+            display: none;
+            box-shadow: 0 0 8px #ff5252;
+        }
         .scope-text {
             position: absolute; bottom: 12px; font-size: 10px; color: #00ff66;
             font-family: monospace; font-weight: bold; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 3px;
@@ -218,17 +249,24 @@
         <button class="mode-btn" onclick="startMode('hotseat')" id="i18n-mode-2">👥 2. 二人一機對戰 (同機過場)</button>
     </div>
 
-    <!-- 🛒 戰術科技補給站 (支援 5 種裝備依關卡解鎖) -->
+    <!-- 🛒 具備新手引導與點數狀態顯色的戰術補給站 -->
     <div id="shop-screen">
-        <h1 style="color: #00e5ff;">🛒 戰術科技補給站</h1>
+        <h1 style="color: #00e5ff;">🛒 戰術科技補給站 (採購倒數: <span id="shop-timer" style="color: #ff5252;">30</span>秒)</h1>
         <div class="designer-tag">國立高雄師範大學 劉世閔博士 總設計</div>
-        <p id="shop-instruction" style="color: #fff; font-size: 15px; margin-bottom: 10px;">請利用累積積分選購戰術裝備以應付下一關：</p>
-        <div style="color: #f1c40f; font-size: 18px; margin-bottom: 15px;" id="current-shopper-info">當前操作玩家分數</div>
+        <p id="shop-instruction" style="color: #fff; font-size: 15px; margin-bottom: 10px;">點數足夠時按鈕會顯示綠色，不足時呈現灰階。不買可直接略過：</p>
         
-        <div class="shop-container" id="shop-cards-container">
-            <!-- 動態生成解鎖裝備 -->
+        <div style="display: flex; gap: 40px; margin-bottom: 20px; justify-content: center; width: 100%;">
+            <div style="background: rgba(255,82,82,0.15); border: 2px solid #ff5252; padding: 15px; border-radius: 10px; width: 42%; text-align: center;">
+                <h3 style="color: #ff5252; margin-top: 0;">🔴 紅隊購物區 (剩餘點數: <span id="red-shop-score">0</span>)</h3>
+                <div class="shop-container" id="red-shop-cards" style="justify-content: center;"></div>
+            </div>
+            <div style="background: rgba(68,138,255,0.15); border: 2px solid #448aff; padding: 15px; border-radius: 10px; width: 42%; text-align: center;">
+                <h3 style="color: #448aff; margin-top: 0;">🔵 藍隊購物區 (剩餘點數: <span id="blue-shop-score">0</span>)</h3>
+                <div class="shop-container" id="blue-shop-cards" style="justify-content: center;"></div>
+            </div>
         </div>
-        <button class="mode-btn" onclick="closeShop()" style="margin-top: 25px; width: 220px;">進入下一關 ➔</button>
+
+        <button class="mode-btn" onclick="closeShop()" style="margin-top: 10px; width: 260px;">完成採購（或略過），進入下一關 ➔</button>
     </div>
 
     <div id="celebration-screen">
@@ -270,12 +308,13 @@
         <div id="scope-hud">
             <div class="scope-cross-h"></div>
             <div class="scope-cross-v"></div>
-            <div class="scope-text" id="scopeStatus">SCOPE x4</div>
+            <div id="scope-target-shadow"></div>
+            <div class="scope-text" id="scopeStatus">LOCK: OFF</div>
         </div>
     </div>
 
     <div id="math-panel">
-        💡 終極版提示：每關結束後解鎖對應裝備（雷達、穿甲彈、裝甲、風向干擾器、高爆彈道）！
+        💡 新手引導提示：商店備有新手推薦裝備與即時點數顯色，助您輕鬆上手！
     </div>
 
     <script>
@@ -307,7 +346,7 @@
                 level: "Level", turn: "Turn", wind: "Wind", trial: "Trial", shield: "Shield",
                 angle: "Angle", power: "Power", fire: "🔥 Fire",
                 passText: "Please pass the computer to the next player!", readyBtn: "Ready!", restart: "🔄 Play Again",
-                redTeam: "Red Team", blueTeam: "Blue Team", redTeamP1: "Red (P1)", blueTeamP2: "Blue (P2)",
+                redTeam: "Red Team", blueTeam: "Blue Team", redTeamP1: "Red (P1)", redTeamP2: "Blue (P2)",
                 championSuffix: " Wins the Grand Championship!", selfExplode: "Calculation error, self-destroyed!", shieldBlock: "Shield successfully blocked the attack!",
                 hitEnemy: "Hit enemy! Score: ", redRoundWin: "🔴 Red destroyed 3 Blue tanks. Red wins the round!", blueRoundWin: "🔵 Blue destroyed 3 Red tanks. Blue wins the round!"
             },
@@ -323,7 +362,7 @@
             },
             'ko': {
                 title: "🎯 수학 물리 탱크 배틀", selectMode: "플레이 모드를 선택하세요:",
-                mode1: "👤 1. 싱글 플레이 (혼자 연습)", mode2: "👥 2. 로컬 2인용 (턴제 대결)",
+                mode1: "👤 1. 싱글 플레이 (혼자 연습)", mode2: "👤 2. 로컬 2인용 (턴제 대결)",
                 level: "라운드", turn: "턴", wind: "풍속", trial: "사전조준", shield: "보호막",
                 angle: "각도", power: "파워", fire: "🔥 발사",
                 passText: "다음 플레이어에게 컴퓨터를 넘겨주세요!", readyBtn: "준비 완료!", restart: "🔄 다시 도전",
@@ -372,24 +411,30 @@
 
         let currentLevel = 1, turn = 'red', terrainHeights = [], windPower = 0; 
         let obstacles = []; 
+        let gravityAnomaly = null; 
+        let weatherType = 'clear'; 
         let redMatchWins = 0, blueMatchWins = 0, redScore = 0, blueScore = 0;
         let redDestroyed = 0, blueDestroyed = 0;
-        let redTank = { x: 120, y: 320, angle: 45, power: 50, armorPiercing: false, scoreMultiplier: 1 };
-        let blueTank = { x: 680, y: 320, angle: 135, power: 50, armorPiercing: false, scoreMultiplier: 1 };
+        let redTank = { x: 120, y: 320, angle: 45, power: 50, armorPiercing: false, scoreMultiplier: 1, empJammed: false };
+        let blueTank = { x: 680, y: 320, angle: 135, power: 50, armorPiercing: false, scoreMultiplier: 1, empJammed: false };
         let redTrialsLeft = 4, blueTrialsLeft = 4;
         let redShields = 0, blueShields = 0;
         let bulletMaxHeight = 0, launchBaseY = 320, bullet = null;
+
+        let shopTimerInterval = null;
+        let shopSecondsLeft = 30;
 
         function fnUpdateWindAndTerrain() {
             windPower = (Math.random() - 0.5) * (currentLevel * 0.18);
             let windDesc = windPower === 0 ? "0.0" : (windPower > 0 ? `+${(windPower*10).toFixed(1)}` : `${(windPower*10).toFixed(1)}`);
             document.getElementById('windText').innerText = windDesc;
-            document.getElementById('scopeStatus').innerText = `WIND:${windPower > 0 ? '+' : ''}${(windPower*10).toFixed(0)}`;
         }
 
         function generateTerrain() {
             terrainHeights = [];
             obstacles = [];
+            gravityAnomaly = null;
+
             let seed1 = Math.random() * 0.02 + 0.01;
             let seed2 = Math.random() * 0.01 + 0.005;
             for (let x = 0; x <= canvas.width; x += 10) {
@@ -397,12 +442,30 @@
                 terrainHeights.push({ x: x, y: Math.min(370, Math.max(160, y)) });
             }
 
-            let obstacleCount = 3 + Math.floor(Math.random() * 3);
+            let obstacleCount = 2 + Math.floor(Math.random() * 2);
             for (let i = 0; i < obstacleCount; i++) {
-                let obsX = 220 + Math.random() * 360;
+                let obsX = 240 + Math.random() * 320;
                 let obsY = getTerrainY(obsX);
                 let type = Math.random() > 0.5 ? 'tree' : 'rock';
                 obstacles.push({ x: obsX, y: obsY, type: type });
+            }
+
+            if (currentLevel >= 3 && Math.random() > 0.3) {
+                gravityAnomaly = {
+                    x: 300 + Math.random() * 200,
+                    y: 150 + Math.random() * 100,
+                    radius: 35,
+                    strength: 0.15 + (currentLevel * 0.05)
+                };
+            }
+
+            let randW = Math.random();
+            if (currentLevel >= 4 && randW > 0.6) {
+                weatherType = 'rain';
+            } else if (currentLevel >= 5 && randW > 0.4) {
+                weatherType = 'night';
+            } else {
+                weatherType = 'clear';
             }
         }
 
@@ -447,6 +510,8 @@
             blueTank.armorPiercing = false;
             redTank.scoreMultiplier = 1;
             blueTank.scoreMultiplier = 1;
+            redTank.empJammed = false;
+            blueTank.empJammed = false;
 
             document.getElementById('levelText').innerText = currentLevel;
             updateTrialUI();
@@ -517,8 +582,22 @@
             if (bullet) {
                 bullet.x += bullet.vx;
                 bullet.y += bullet.vy;
-                bullet.vy += 0.22; 
+                
+                let gravity = 0.22;
+                if (weatherType === 'rain') gravity = 0.28;
+                bullet.vy += gravity; 
                 bullet.vx += windPower; 
+
+                if (gravityAnomaly) {
+                    let dx = gravityAnomaly.x - bullet.x;
+                    let dy = gravityAnomaly.y - bullet.y;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist < 120 && dist > 5) {
+                        bullet.vx += (dx / dist) * gravityAnomaly.strength;
+                        bullet.vy += (dy / dist) * gravityAnomaly.strength;
+                    }
+                }
+
                 bullet.age++;
 
                 if (bullet.y < bulletMaxHeight) bulletMaxHeight = bullet.y;
@@ -633,102 +712,118 @@
             }
         }
 
-        // 🛒 動態生成根據當前關卡解鎖的戰術裝備商店
         function openShop() {
-            let shopperName = turn === 'red' ? "🔴 紅隊" : "🔵 藍隊";
-            let shopperScore = turn === 'red' ? redScore : blueScore;
-            document.getElementById('current-shopper-info').innerText = `${shopperName} 累積總分: ${shopperScore} 分`;
-            
-            let container = document.getElementById('shop-cards-container');
-            container.innerHTML = `
-                <div class="shop-card">
-                    <h3>🔍 雷射導引雷達</h3>
-                    <p style="font-size: 12px; color: #ddd;">延長完整試瞄線 1 次</p>
-                    <p style="color: #f1c40f; font-weight: bold;">150 分</p>
-                    <button onclick="buyUpgrade('radar')">購買</button>
-                </div>
-                <div class="shop-card">
-                    <h3>💥 穿甲彈</h3>
-                    <p style="font-size: 12px; color: #ddd;">砲彈可貫穿並摧毀障礙物</p>
-                    <p style="color: #f1c40f; font-weight: bold;">200 分</p>
-                    <button onclick="buyUpgrade('armorPiercing')">購買</button>
-                </div>
-                <div class="shop-card">
-                    <h3>🛡️ 強化跳彈裝甲</h3>
-                    <p style="font-size: 12px; color: #ddd;">額外增加 1 次防護罩</p>
-                    <p style="color: #f1c40f; font-weight: bold;">250 分</p>
-                    <button onclick="buyUpgrade('extraShield')">購買</button>
-                </div>
-            `;
+            document.getElementById('red-shop-score').innerText = redScore;
+            document.getElementById('blue-shop-score').innerText = blueScore;
 
-            // 第 4 關起解鎖：氣象風向干擾器
-            if (currentLevel >= 4) {
-                container.innerHTML += `
-                    <div class="shop-card" style="border-color: #00e5ff;">
-                        <h3 style="color: #00e5ff;">🧭 氣象風向干擾器</h3>
-                        <p style="font-size: 12px; color: #ddd;">強制將下局風速減半</p>
-                        <p style="color: #00e5ff; font-weight: bold;">180 分</p>
-                        <button onclick="buyUpgrade('windJammer')">購買</button>
-                    </div>
-                `;
-            }
+            renderTeamShop('red', 'red-shop-cards');
+            renderTeamShop('blue', 'blue-shop-cards');
 
-            // 第 5 關起解鎖：高爆彈道分身（高地加農）
-            if (currentLevel >= 5) {
-                container.innerHTML += `
-                    <div class="shop-card" style="border-color: #ff5252;">
-                        <h3 style="color: #ff5252;">🎯 高爆彈道分身</h3>
-                        <p style="font-size: 12px; color: #ddd;">本局命中得分加倍</p>
-                        <p style="color: #ff5252; font-weight: bold;">300 分</p>
-                        <button onclick="buyUpgrade('highExplosive')">購買</button>
-                    </div>
-                `;
-            }
-
+            shopSecondsLeft = 30;
+            document.getElementById('shop-timer').innerText = shopSecondsLeft;
             document.getElementById('shop-screen').style.display = 'flex';
+
+            if (shopTimerInterval) clearInterval(shopTimerInterval);
+            shopTimerInterval = setInterval(() => {
+                shopSecondsLeft--;
+                document.getElementById('shop-timer').innerText = shopSecondsLeft;
+                if (shopSecondsLeft <= 0) {
+                    clearInterval(shopTimerInterval);
+                    closeShop();
+                }
+            }, 1000);
         }
 
-        function buyUpgrade(item) {
-            let currentScore = turn === 'red' ? redScore : blueScore;
-            if (item === 'radar' && currentScore >= 150) {
-                if (turn === 'red') { redScore -= 150; redTrialsLeft += 1; }
-                else { blueScore -= 150; blueTrialsLeft += 1; }
-                alert("✅ 成功購買【雷達】！試瞄次數 +1");
-            } else if (item === 'armorPiercing' && currentScore >= 200) {
-                if (turn === 'red') { redScore -= 200; redTank.armorPiercing = true; }
-                else { blueScore -= 200; blueTank.armorPiercing = true; }
-                alert("✅ 成功購買【穿甲彈】！");
-            } else if (item === 'extraShield' && currentScore >= 250) {
-                if (turn === 'red') { redScore -= 250; redShields += 1; }
-                else { blueScore -= 250; blueShields += 1; }
-                alert("✅ 成功購買【跳彈裝甲】！防護罩 +1");
-            } else if (item === 'windJammer' && currentScore >= 180) {
-                if (turn === 'red') redScore -= 180; else blueScore -= 180;
-                windPower *= 0.5; // 下局風速減半
-                alert("✅ 成功購買【風向干擾器】！下局風速已減半");
-            } else if (item === 'highExplosive' && currentScore >= 300) {
-                if (turn === 'red') { redScore -= 300; redTank.scoreMultiplier = 2; }
-                else { blueScore -= 300; blueTank.scoreMultiplier = 2; }
-                alert("✅ 成功購買【高爆彈道分身】！本局得分將以 2 倍計算");
-            } else {
-                alert("❌ 積分不足，無法購買此裝備！");
+        // 🎨 渲染裝備卡片，並根據當前積分動態切換買得起(綠色)與買不起(灰階)的按鈕狀態
+        function renderTeamShop(team, containerId) {
+            let container = document.getElementById(containerId);
+            let score = team === 'red' ? redScore : blueScore;
+
+            let items = [
+                { id: 'radar', name: '🔍 雷達', desc: '+1 試瞄', cost: 150, badge: '⭐ 新手推薦' },
+                { id: 'armorPiercing', name: '💥 穿甲彈', desc: '貫穿障礙', cost: 200, badge: '' },
+                { id: 'extraShield', name: '🛡️ 裝甲', desc: '+1 防護罩', cost: 250, badge: '⭐ 新手推薦' }
+            ];
+
+            if (currentLevel >= 3) {
+                items.push({ id: 'empJam', name: '⚡ 電磁波', desc: '癱瘓敵方試瞄', cost: 220, badge: '' });
             }
+            if (currentLevel >= 5) {
+                items.push({ id: 'highExplosive', name: '🎯 高爆彈', desc: '得分 2 倍', cost: 300, badge: '' });
+            }
+
+            let html = '';
+            items.forEach(item => {
+                let canAfford = score >= item.cost;
+                let btnClass = canAfford ? 'btn-affordable' : 'btn-unaffordable';
+                let btnText = canAfford ? '購買' : `差 ${item.cost - score} 分`;
+
+                html += `
+                    <div class="shop-card">
+                        ${item.badge ? `<div class="beginner-badge">${item.badge}</div>` : ''}
+                        <h3>${item.name}</h3>
+                        <p style="font-size: 11px; color: #ddd; margin: 5px 0;">${item.desc}</p>
+                        <p style="color: #f1c40f; font-weight: bold; margin: 5px 0;">${item.cost}分</p>
+                        <button class="${btnClass}" onclick="buyTeamUpgrade('${team}', '${item.id}', ${item.cost})" ${canAfford ? '' : 'disabled'}>${btnText}</button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function buyTeamUpgrade(team, item, cost) {
+            let score = team === 'red' ? redScore : blueScore;
+            if (score < cost) return;
+
+            if (team === 'red') redScore -= cost; else blueScore -= cost;
+
+            // 即時更新點數與刷新雙方商店按鈕狀態
+            document.getElementById('red-shop-score').innerText = redScore;
+            document.getElementById('blue-shop-score').innerText = blueScore;
+            renderTeamShop('red', 'red-shop-cards');
+            renderTeamShop('blue', 'blue-shop-cards');
+
+            if (item === 'radar') {
+                if (team === 'red') redTrialsLeft += 1; else blueTrialsLeft += 1;
+                alert(`✅ ${team === 'red' ? '紅隊' : '藍隊'} 成功購買【雷達】！`);
+            } else if (item === 'armorPiercing') {
+                if (team === 'red') redTank.armorPiercing = true; else blueTank.armorPiercing = true;
+                alert(`✅ ${team === 'red' ? '紅隊' : '藍隊'} 成功購買【穿甲彈】！`);
+            } else if (item === 'extraShield') {
+                if (team === 'red') redShields += 1; else blueShields += 1;
+                alert(`✅ ${team === 'red' ? '紅隊' : '藍隊'} 成功購買【跳彈裝甲】！`);
+            } else if (item === 'empJam') {
+                if (team === 'red') blueTank.empJammed = true; else redTank.empJammed = true;
+                alert(`✅ ${team === 'red' ? '紅隊' : '藍隊'} 成功發射【電磁波】癱瘓敵方試瞄線！`);
+            } else if (item === 'highExplosive') {
+                if (team === 'red') redTank.scoreMultiplier = 2; else blueTank.scoreMultiplier = 2;
+                alert(`✅ ${team === 'red' ? '紅隊' : '藍隊'} 成功購買【高爆彈道分身】！`);
+            }
+
             updateTrialUI();
         }
 
         function closeShop() {
+            if (shopTimerInterval) clearInterval(shopTimerInterval);
             document.getElementById('shop-screen').style.display = 'none';
             initLevel(currentLevel + 1);
         }
 
         function checkMatchWin() {
             const t = langData[currentLang];
-            if (redMatchWins >= 3 || (redScore > blueScore && currentLevel >= 5)) {
-                showCelebration(`🔴 ${t.redTeam}`, redScore, "#ff5252");
-            } else if (blueMatchWins >= 3 || (blueScore > redScore && currentLevel >= 5)) {
-                showCelebration(`🔵 ${t.blueTeam}`, blueScore, "#448aff");
+            if (redMatchWins > blueMatchWins) {
+                showCelebration(`🔴 ${t.redTeam} (勝場勝)`, redScore, "#ff5252");
+            } else if (blueMatchWins > redMatchWins) {
+                showCelebration(`🔵 ${t.blueTeam} (勝場勝)`, blueScore, "#448aff");
             } else {
-                showCelebration(`🤝 雙方平手`, redScore, "#f1c40f");
+                if (redScore > blueScore) {
+                    showCelebration(`🔴 ${t.redTeam} (總分勝)`, redScore, "#ff5252");
+                } else if (blueScore > redScore) {
+                    showCelebration(`🔵 ${t.blueTeam} (總分勝)`, blueScore, "#448aff");
+                } else {
+                    showCelebration(`🤝 雙方完全平手`, redScore, "#f1c40f");
+                }
             }
         }
 
@@ -736,7 +831,7 @@
             const t = langData[currentLang];
             document.getElementById('champion-title').innerText = `${winnerName} ${t.championSuffix}`;
             document.getElementById('champion-title').style.color = colorHex;
-            document.getElementById('champion-stats').innerText = `總得分高達 ${score} 分！完美展現五國語言、光學靶標與五大戰術裝備的頂尖實力！`;
+            document.getElementById('champion-stats').innerText = `總得分高達 ${score} 分！新手友善引導與總分決勝機制下的最終王者！`;
             document.getElementById('celebration-screen').style.display = 'flex';
         }
 
@@ -766,6 +861,63 @@
             updateTrialUI();
         }
 
+        function checkTargetLockInScope() {
+            let tank = turn === 'red' ? redTank : blueTank;
+            let opponent = turn === 'red' ? blueTank : redTank;
+            let rad = (tank.angle * Math.PI) / 180;
+            let speed = tank.power * 0.25;
+
+            let simX = tank.x + Math.cos(rad) * 32;
+            let simY = (tank.y - 10) - Math.sin(rad) * 32;
+            let simVx = Math.cos(rad) * speed;
+            let simVy = -Math.sin(rad) * speed;
+
+            let locked = false;
+            let shadowEl = document.getElementById('scope-target-shadow');
+            let statusEl = document.getElementById('scopeStatus');
+
+            if (tank.empJammed) {
+                shadowEl.style.display = 'none';
+                statusEl.innerText = "EMP JAMMED";
+                statusEl.style.color = "#ff5252";
+                return;
+            }
+
+            for (let i = 0; i < 90; i++) {
+                simX += simVx;
+                simY += simVy;
+                simVy += (weatherType === 'rain' ? 0.28 : 0.22);
+                simVx += windPower;
+
+                if (gravityAnomaly) {
+                    let dx = gravityAnomaly.x - simX;
+                    let dy = gravityAnomaly.y - simY;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist < 120 && dist > 5) {
+                        simVx += (dx / dist) * gravityAnomaly.strength;
+                        simVy += (dy / dist) * gravityAnomaly.strength;
+                    }
+                }
+
+                if (Math.hypot(simX - opponent.x, simY - opponent.y) < 35) {
+                    locked = true;
+                    break;
+                }
+                let groundY = getTerrainY(simX);
+                if (simY >= groundY || simY > canvas.height) break;
+            }
+
+            if (locked) {
+                shadowEl.style.display = 'block';
+                statusEl.innerText = "LOCK: TARGET";
+                statusEl.style.color = "#ff5252";
+            } else {
+                shadowEl.style.display = 'none';
+                statusEl.innerText = "LOCK: SEARCH";
+                statusEl.style.color = "#00ff66";
+            }
+        }
+
         function drawTrajectory() {
             if (bullet) return;
             let currentTrials = turn === 'red' ? redTrialsLeft : blueTrialsLeft;
@@ -780,7 +932,8 @@
             let simVx = Math.cos(rad) * speed;
             let simVy = -Math.sin(rad) * speed;
 
-            let maxSteps = Math.max(20, 75 - (currentLevel * 11));
+            let maxSteps = Math.max(15, 75 - (currentLevel * 11));
+            if (tank.empJammed) maxSteps = Math.floor(maxSteps * 0.5);
 
             ctx.strokeStyle = turn === 'red' ? 'rgba(255, 82, 82, 0.65)' : 'rgba(68, 138, 255, 0.65)';
             ctx.lineWidth = 2.5;
@@ -791,8 +944,18 @@
             for (let i = 0; i < maxSteps; i++) {
                 simX += simVx;
                 simY += simVy;
-                simVy += 0.22;
+                simVy += (weatherType === 'rain' ? 0.28 : 0.22);
                 simVx += windPower;
+
+                if (gravityAnomaly) {
+                    let dx = gravityAnomaly.x - simX;
+                    let dy = gravityAnomaly.y - simY;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist < 120 && dist > 5) {
+                        simVx += (dx / dist) * gravityAnomaly.strength;
+                        simVy += (dy / dist) * gravityAnomaly.strength;
+                    }
+                }
 
                 if (simX <= 0) { simX = 0; simVx = -simVx * 0.75; }
                 else if (simX >= canvas.width) { simX = canvas.width; simVx = -simVx * 0.75; }
@@ -803,6 +966,8 @@
             }
             ctx.stroke();
             ctx.setLineDash([]);
+
+            checkTargetLockInScope();
         }
 
         function drawCoordinateGrid() {
@@ -833,6 +998,16 @@
             ctx.closePath();
             ctx.fill();
 
+            if (gravityAnomaly) {
+                ctx.fillStyle = 'rgba(138, 43, 225, 0.35)';
+                ctx.beginPath(); ctx.arc(gravityAnomaly.x, gravityAnomaly.y, 35, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ba55d3'; ctx.lineWidth = 2; ctx.setLineDash([3, 3]);
+                ctx.beginPath(); ctx.arc(gravityAnomaly.x, gravityAnomaly.y, 25, 0, Math.PI * 2); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#dda0dd'; ctx.font = '11px sans-serif';
+                ctx.fillText("🌌 引力場", gravityAnomaly.x - 22, gravityAnomaly.y - 40);
+            }
+
             obstacles.forEach(obs => {
                 if (obs.type === 'tree') {
                     ctx.fillStyle = '#8B4513';
@@ -855,6 +1030,10 @@
                 ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.arc(redTank.x, redTank.y - 5, 24, 0, Math.PI * 2); ctx.stroke();
             }
+            if (redTank.empJammed) {
+                ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(redTank.x, redTank.y - 5, 28, 0, Math.PI * 2); ctx.stroke();
+            }
             let redRad = (redTank.angle * Math.PI) / 180;
             ctx.strokeStyle = '#c62828'; ctx.lineWidth = 5;
             ctx.beginPath(); ctx.moveTo(redTank.x, redTank.y - 10);
@@ -868,6 +1047,10 @@
                 ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.arc(blueTank.x, blueTank.y - 5, 24, 0, Math.PI * 2); ctx.stroke();
             }
+            if (blueTank.empJammed) {
+                ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(blueTank.x, blueTank.y - 5, 28, 0, Math.PI * 2); ctx.stroke();
+            }
             let blueRad = (blueTank.angle * Math.PI) / 180;
             ctx.strokeStyle = '#1565c0'; ctx.lineWidth = 5;
             ctx.beginPath(); ctx.moveTo(blueTank.x, blueTank.y - 10);
@@ -876,6 +1059,19 @@
             if (bullet) {
                 ctx.fillStyle = '#f1c40f';
                 ctx.beginPath(); ctx.arc(bullet.x, bullet.y, 6, 0, Math.PI * 2); ctx.fill();
+            }
+
+            if (weatherType === 'night') {
+                ctx.fillStyle = 'rgba(0, 0, 30, 0.45)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else if (weatherType === 'rain') {
+                ctx.strokeStyle = 'rgba(150, 200, 255, 0.3)';
+                ctx.lineWidth = 1;
+                for(let i=0; i<40; i++) {
+                    let rx = (i * 37 + Date.now() * 0.5) % canvas.width;
+                    let ry = (i * 23 + Date.now() * 0.8) % canvas.height;
+                    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx - 2, ry + 10); ctx.stroke();
+                }
             }
 
             const t = langData[currentLang];
