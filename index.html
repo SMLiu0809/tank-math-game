@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>數學物理坦克大戰 - 五國語言版</title>
+    <title>數學物理坦克大戰 - 經濟平衡科技樹版</title>
     <style>
         body {
             margin: 0;
@@ -38,8 +38,8 @@
         }
         .lang-btn:hover { background: #f1c40f; color: #1a1a1a; }
 
-        /* 模式選擇大廳畫面 */
-        #lobby, #celebration-screen {
+        /* 模式選擇大廳、商店與頒獎畫面 */
+        #lobby, #shop-screen, #celebration-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(26, 26, 26, 0.98);
@@ -50,6 +50,7 @@
             z-index: 10;
             gap: 20px;
         }
+        #shop-screen { display: none; z-index: 15; background: rgba(20, 30, 40, 0.96); }
         #celebration-screen { display: none; z-index: 20; background: rgba(15, 15, 15, 0.95); }
         
         h1 { color: #f1c40f; margin-bottom: 5px; text-align: center; font-size: 34px; }
@@ -74,6 +75,32 @@
         }
         .mode-btn:hover { background: #219653; }
         
+        /* 商店按鈕與卡片 */
+        .shop-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .shop-card {
+            background: #2c3e50;
+            border: 2px solid #f1c40f;
+            padding: 20px;
+            border-radius: 10px;
+            width: 220px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .shop-card h3 { color: #00e5ff; margin-top: 0; }
+        .shop-card button {
+            margin-top: 10px;
+            background: #e67e22;
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .shop-card button:hover { background: #d35400; }
+
         /* 頂部 UI 介面 */
         #ui {
             margin-bottom: 8px;
@@ -101,13 +128,43 @@
             font-weight: bold;
         }
         button:hover { background: #c0392b; }
+        
+        .game-container {
+            position: relative;
+        }
         canvas {
             border: 4px solid #34495e;
             background: linear-gradient(to bottom, #4a90e2, #e0f6ff);
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
             max-width: 100%;
             height: auto;
+            display: block;
         }
+
+        #scope-hud {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 140px;
+            height: 140px;
+            background: rgba(10, 30, 10, 0.75);
+            border: 3px solid #00ff66;
+            border-radius: 50%;
+            box-shadow: inset 0 0 15px rgba(0, 255, 102, 0.5), 0 0 10px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 4;
+            overflow: hidden;
+        }
+        .scope-cross-h { position: absolute; width: 100%; height: 2px; background: rgba(0, 255, 102, 0.8); }
+        .scope-cross-v { position: absolute; height: 100%; width: 2px; background: rgba(0, 255, 102, 0.8); }
+        .scope-text {
+            position: absolute; bottom: 12px; font-size: 10px; color: #00ff66;
+            font-family: monospace; font-weight: bold; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 3px;
+        }
+
         #math-panel {
             margin-top: 8px;
             background: #34495e;
@@ -120,7 +177,6 @@
             font-weight: bold;
         }
 
-        /* 換手過場遮罩 */
         #pass-mask {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -166,6 +222,36 @@
         <button class="mode-btn" onclick="startMode('hotseat')" id="i18n-mode-2">👥 2. 二人一機對戰 (同機過場)</button>
     </div>
 
+    <!-- 🛒 局外成長科技樹商店畫面 (經濟平衡設定：前四關累積 400~500 分解鎖配置) -->
+    <div id="shop-screen">
+        <h1 style="color: #00e5ff;">🛒 戰術科技補給站</h1>
+        <div class="designer-tag">國立高雄師範大學 劉世閔博士 總設計</div>
+        <p id="shop-instruction" style="color: #fff; font-size: 16px; margin-bottom: 10px;">前四關表現優異累積積分，請選擇您要解鎖的戰術裝備：</p>
+        <div style="color: #f1c40f; font-size: 18px; margin-bottom: 15px;" id="current-shopper-info">當前操作玩家分數</div>
+        
+        <div class="shop-container">
+            <div class="shop-card">
+                <h3>🔍 雷射導引雷達</h3>
+                <p style="font-size: 13px; color: #ddd;">延長下一局完整試瞄線 1 次</p>
+                <p style="color: #f1c40f; font-weight: bold;">費用: 150 分</p>
+                <button onclick="buyUpgrade('radar')">購買升級</button>
+            </div>
+            <div class="shop-card">
+                <h3>💥 穿甲彈</h3>
+                <p style="font-size: 13px; color: #ddd;">砲彈可直接貫穿並摧毀障礙物</p>
+                <p style="color: #f1c40f; font-weight: bold;">費用: 200 分</p>
+                <button onclick="buyUpgrade('armorPiercing')">購買升級</button>
+            </div>
+            <div class="shop-card">
+                <h3>🛡️ 強化跳彈裝甲</h3>
+                <p style="font-size: 13px; color: #ddd;">額外增加 1 次防護罩防禦機會</p>
+                <p style="color: #f1c40f; font-weight: bold;">費用: 250 分</p>
+                <button onclick="buyUpgrade('extraShield')">購買升級</button>
+            </div>
+        </div>
+        <button class="mode-btn" onclick="closeShop()" style="margin-top: 30px; width: 220px;">進入最終第五關 ➔</button>
+    </div>
+
     <!-- 🏆 總冠軍頒獎典禮畫面 -->
     <div id="celebration-screen">
         <div class="trophy-card">
@@ -202,112 +288,77 @@
         <button onclick="fireCannon()" id="fireBtn" style="background: #27ae60;">🔥 發射</button>
     </div>
 
-    <canvas id="gameCanvas" width="800" height="420"></canvas>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="420"></canvas>
+        <div id="scope-hud">
+            <div class="scope-cross-h"></div>
+            <div class="scope-cross-v"></div>
+            <div class="scope-text" id="scopeStatus">SCOPE x4</div>
+        </div>
+    </div>
 
-    <div id="math-panel" id="i18n-tip">
-        💡 戰略提示：第四關起雙方配備防護罩（第4關1次，第5關2次），可自動抵擋致命攻擊！
+    <div id="math-panel">
+        💡 經濟平衡提示：前四關累積 400~500 分，可在關卡間解鎖雷達(150分)、穿甲彈(200分)與裝甲(250分)！
     </div>
 
     <script>
-        // --- 🌍 多國語言字典設定 ---
         let currentLang = 'zh-TW';
         const langData = {
             'zh-TW': {
-                title: "🎯 數學物理坦克大戰",
-                selectMode: "請選擇您的遊玩模式：",
-                mode1: "👤 1. 單人左右互搏 (自我訓練)",
-                mode2: "👥 2. 二人一機對戰 (同機過場)",
+                title: "🎯 數學物理坦克大戰", selectMode: "請選擇您的遊玩模式：",
+                mode1: "👤 1. 單人左右互搏 (自我訓練)", mode2: "👥 2. 二人一機對戰 (同機過場)",
                 level: "局數", turn: "回合", wind: "風速", trial: "試瞄", shield: "防護罩",
                 angle: "仰角", power: "力度", fire: "🔥 發射",
-                tip: "💡 戰略提示：第四關起雙方配備防護罩（第4關1次，第5關2次），可自動抵擋致命攻擊！",
-                passText: "請把電腦交給下一位玩家！", readyBtn: "準備好了！",
-                restart: "🔄 再次挑戰", redTeam: "紅隊", blueTeam: "藍隊",
-                redTeamP1: "紅隊 (玩家1)", blueTeamP2: "藍隊 (玩家2)",
-                championSuffix: " 榮獲總冠軍！",
-                statsText: "經過五戰三勝激戰，展現了卓越的數學與物理計算能力！",
-                selfExplode: "計算錯誤，發生自炸！", shieldBlock: "防護罩成功擋下攻擊！",
-                hitEnemy: "命中敵方！獲得總分: ",
-                analysisTitle: "物理與數學學習解析",
-                analysisWinner: "獲勝方："
+                passText: "請把電腦交給下一位玩家！", readyBtn: "準備好了！", restart: "🔄 再次挑戰",
+                redTeam: "紅隊", blueTeam: "藍隊", redTeamP1: "紅隊 (玩家1)", blueTeamP2: "藍隊 (玩家2)",
+                championSuffix: " 榮獲總冠軍！", selfExplode: "計算錯誤，發生自炸！", shieldBlock: "防護罩成功擋下攻擊！",
+                hitEnemy: "命中敵方！獲得總分: ", redRoundWin: "🔴 紅方擊毀三輛藍方，紅方贏得本局！", blueRoundWin: "🔵 藍方擊毀三輛紅方，藍方贏得本局！"
             },
             'zh-CN': {
-                title: "🎯 数学物理坦克大战",
-                selectMode: "请选择您的游玩模式：",
-                mode1: "👤 1. 单人左右互搏 (自我训练)",
-                mode2: "👥 2. 二人一机对战 (同机过场)",
+                title: "🎯 数学物理坦克大战", selectMode: "请选择您的游玩模式：",
+                mode1: "👤 1. 单人左右互搏 (自我训练)", mode2: "👥 2. 二人一机对战 (同机过场)",
                 level: "局数", turn: "回合", wind: "风速", trial: "试瞄", shield: "防护罩",
                 angle: "仰角", power: "力度", fire: "🔥 发射",
-                tip: "💡 战略提示：第四关起双方配备防护罩（第4关1次，第5关2次），可自动抵挡致命攻击！",
-                passText: "请把电脑交给下一位玩家！", readyBtn: "准备好了！",
-                restart: "🔄 再次挑战", redTeam: "红队", blueTeam: "蓝队",
-                redTeamP1: "红队 (玩家1)", blueTeamP2: "蓝队 (玩家2)",
-                championSuffix: " 荣获总冠军！",
-                statsText: "经过五战三胜激战，展现了卓越的数学与物理计算能力！",
-                selfExplode: "计算错误，发生自炸！", shieldBlock: "防护罩成功挡下攻击！",
-                hitEnemy: "命中敌方！获得总分: ",
-                analysisTitle: "物理与数学学习解析",
-                analysisWinner: "获胜方："
+                passText: "请把电脑交给下一位玩家！", readyBtn: "准备好了！", restart: "🔄 再次挑战",
+                redTeam: "红队", blueTeam: "蓝队", redTeamP1: "红队 (玩家1)", blueTeamP2: "蓝队 (玩家2)",
+                championSuffix: " 荣获总冠军！", selfExplode: "计算错误，发生自炸！", shieldBlock: "防护罩成功挡下攻击！",
+                hitEnemy: "命中敌方！获得总分: ", redRoundWin: "🔴 红方击毁三辆蓝方，红方赢得本局！", blueRoundWin: "🔵 蓝方击毁三辆红方，蓝方赢得本局！"
             },
             'en': {
-                title: "🎯 Math & Physics Tank Battle",
-                selectMode: "Please select your game mode:",
-                mode1: "👤 1. Self-Play (Solo Training)",
-                mode2: "👥 2. Local Hotseat (Pass & Play)",
+                title: "🎯 Math & Physics Tank Battle", selectMode: "Please select your game mode:",
+                mode1: "👤 1. Self-Play (Solo Training)", mode2: "👥 2. Local Hotseat (Pass & Play)",
                 level: "Level", turn: "Turn", wind: "Wind", trial: "Trial", shield: "Shield",
                 angle: "Angle", power: "Power", fire: "🔥 Fire",
-                tip: "💡 Strategy Tip: Shields available from Level 4 (1x) and Level 5 (2x) to block fatal hits!",
-                passText: "Please pass the computer to the next player!", readyBtn: "Ready!",
-                restart: "🔄 Play Again", redTeam: "Red Team", blueTeam: "Blue Team",
-                redTeamP1: "Red (P1)", blueTeamP2: "Blue (P2)",
-                championSuffix: " Wins the Grand Championship!",
-                statsText: "Showcased exceptional math and physics skills through intense battles!",
-                selfExplode: "Calculation error, self-destroyed!", shieldBlock: "Shield successfully blocked the attack!",
-                hitEnemy: "Hit enemy! Score: ",
-                analysisTitle: "Math & Physics Learning Analysis",
-                analysisWinner: "Winner: "
+                passText: "Please pass the computer to the next player!", readyBtn: "Ready!", restart: "🔄 Play Again",
+                redTeam: "Red Team", blueTeam: "Blue Team", redTeamP1: "Red (P1)", blueTeamP2: "Blue (P2)",
+                championSuffix: " Wins the Grand Championship!", selfExplode: "Calculation error, self-destroyed!", shieldBlock: "Shield successfully blocked the attack!",
+                hitEnemy: "Hit enemy! Score: ", redRoundWin: "🔴 Red destroyed 3 Blue tanks. Red wins the round!", blueRoundWin: "🔵 Blue destroyed 3 Red tanks. Blue wins the round!"
             },
             'ja': {
-                title: "🎯 数学物理タンクバトル",
-                selectMode: "ゲームモードを選択してください：",
-                mode1: "👤 1. ソロプレイ (左右自己対戦)",
-                mode2: "👥 2. ローカル二人プレイ (交互操作)",
+                title: "🎯 数学物理タンクバトル", selectMode: "ゲームモードを選択してください：",
+                mode1: "👤 1. ソロプレイ (左右自己対戦)", mode2: "👥 2. ローカル二人プレイ (交互操作)",
                 level: "ラウンド", turn: "ターン", wind: "風速", trial: "試射", shield: "シールド",
                 angle: "角度", power: "パワー", fire: "🔥 発射",
-                tip: "💡 戦略ヒント：第4ステージ以降シールドが使用可能になり、致命的な攻撃を防げます！",
-                passText: "次のプレイヤーにパソコンを渡してください！", readyBtn: "準備完了！",
-                restart: "🔄 もう一度挑戦", redTeam: "レッド", blueTeam: "ブルー",
-                redTeamP1: "レッド (P1)", blueTeamP2: "ブルー (P2)",
-                championSuffix: " チームが総合優勝！",
-                statsText: "卓越した数学と物理の計算力で見事勝利しました！",
-                selfExplode: "計算ミスで自爆しました！", shieldBlock: "シールドが攻撃を防御しました！",
-                hitEnemy: "敵に命中！獲得スコア: ",
-                analysisTitle: "数学・物理学習分析",
-                analysisWinner: "勝者: "
+                passText: "次のプレイヤーにパソコンを渡してください！", readyBtn: "準備完了！", restart: "🔄 もう一度挑戦",
+                redTeam: "レッド", blueTeam: "ブルー", redTeamP1: "レッド (P1)", blueTeamP2: "ブルー (P2)",
+                championSuffix: " チームが総合優勝！", selfExplode: "計算ミスで自爆しました！", shieldBlock: "シールドが攻撃を防御しました！",
+                hitEnemy: "敵に命中！獲得スコア: ", redRoundWin: "🔴 レッドがブルーの戦車を3台撃破し、ラウンド勝利！", blueRoundWin: "🔵 ブルーがレッドの戦車を3台撃破し、ラウンド勝利！"
             },
             'ko': {
-                title: "🎯 수학 물리 탱크 배틀",
-                selectMode: "플레이 모드를 선택하세요:",
-                mode1: "👤 1. 싱글 플레이 (혼자 연습)",
-                mode2: "👥 2. 로컬 2인용 (턴제 대결)",
+                title: "🎯 수학 물리 탱크 배틀", selectMode: "플레이 모드를 선택하세요:",
+                mode1: "👤 1. 싱글 플레이 (혼자 연습)", mode2: "👥 2. 로컬 2인용 (턴제 대결)",
                 level: "라운드", turn: "턴", wind: "풍속", trial: "사전조준", shield: "보호막",
                 angle: "각도", power: "파워", fire: "🔥 발사",
-                tip: "💡 전략 팁: 4단계부터 보호막이 제공되어 치명적인 공격을 방어할 수 있습니다!",
-                passText: "다음 플레이어에게 컴퓨터를 넘겨주세요!", readyBtn: "준비 완료!",
-                restart: "🔄 다시 도전", redTeam: "레드팀", blueTeam: "블루팀",
-                redTeamP1: "레드 (P1)", blueTeamP2: "블루 (P2)",
-                championSuffix: " 팀 최종 우승!",
-                statsText: "뛰어난 수학 및 물리 계산 능력을 증명했습니다!",
-                selfExplode: "계산 오류로 자폭했습니다!", shieldBlock: "보호막이 공격을 성공적으로 막아냈습니다!",
-                hitEnemy: "적중! 획득 점수: ",
-                analysisTitle: "수학 및 물리 학습 분석",
-                analysisWinner: "승리 팀: "
+                passText: "다음 플레이어에게 컴퓨터를 넘겨주세요!", readyBtn: "준비 완료!", restart: "🔄 다시 도전",
+                redTeam: "레드팀", blueTeam: "블루팀", redTeamP1: "레드 (P1)", blueTeamP2: "블루 (P2)",
+                championSuffix: " 팀 최종 우승!", selfExplode: "계산 오류로 자폭했습니다!", shieldBlock: "보호막이 공격을 성공적으로 막아냈습니다!",
+                hitEnemy: "적중! 획득 점수: ", redRoundWin: "🔴 레드 팀이 블루 탱크 3대를 파괴하여 라운드 승리!", blueRoundWin: "🔵 블루 팀이 레드 탱크 3대를 파괴하여 라운드 승리!"
             }
         };
 
         function setLanguage(lang) {
             currentLang = lang;
             const t = langData[lang];
-            
             document.getElementById('i18n-title').innerText = t.title;
             document.getElementById('i18n-select-mode').innerText = t.selectMode;
             document.getElementById('i18n-mode-1').innerText = t.mode1;
@@ -320,7 +371,6 @@
             document.getElementById('i18n-angle').innerText = t.angle;
             document.getElementById('i18n-power').innerText = t.power;
             document.getElementById('fireBtn').innerText = t.fire;
-            document.getElementById('math-panel').innerText = t.tip;
             document.getElementById('pass-text').innerText = t.passText;
             document.getElementById('i18n-ready').innerText = t.readyBtn;
             document.getElementById('i18n-restart').innerText = t.restart;
@@ -329,7 +379,6 @@
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-
         let gameMode = ''; 
 
         function startMode(mode) {
@@ -344,36 +393,39 @@
             document.getElementById('lobby').style.display = 'flex';
         }
 
-        let currentLevel = 1; 
-        let turn = 'red'; 
-        let terrainHeights = [];
-        let windPower = 0; 
-
-        let redMatchWins = 0, blueMatchWins = 0;
-        let redScore = 0, blueScore = 0;
+        let currentLevel = 1, turn = 'red', terrainHeights = [], windPower = 0; 
+        let obstacles = []; 
+        let redMatchWins = 0, blueMatchWins = 0, redScore = 0, blueScore = 0;
         let redDestroyed = 0, blueDestroyed = 0;
-
-        let redTank = { x: 100, y: 320, angle: 45, power: 50 };
-        let blueTank = { x: 700, y: 320, angle: 135, power: 50 };
-
-        let redTrialsLeft = 4;
-        let blueTrialsLeft = 4;
+        let redTank = { x: 120, y: 320, angle: 45, power: 50, armorPiercing: false };
+        let blueTank = { x: 680, y: 320, angle: 135, power: 50, armorPiercing: false };
+        let redTrialsLeft = 4, blueTrialsLeft = 4;
         let redShields = 0, blueShields = 0;
-
-        let bulletMaxHeight = 0, launchBaseY = 320;
-        let bullet = null;
+        let bulletMaxHeight = 0, launchBaseY = 320, bullet = null;
 
         function fnUpdateWindAndTerrain() {
             windPower = (Math.random() - 0.5) * (currentLevel * 0.18);
             let windDesc = windPower === 0 ? "0.0" : (windPower > 0 ? `+${(windPower*10).toFixed(1)}` : `${(windPower*10).toFixed(1)}`);
             document.getElementById('windText').innerText = windDesc;
+            document.getElementById('scopeStatus').innerText = `WIND:${windPower > 0 ? '+' : ''}${(windPower*10).toFixed(0)}`;
         }
 
         function generateTerrain() {
             terrainHeights = [];
+            obstacles = [];
+            let seed1 = Math.random() * 0.02 + 0.01;
+            let seed2 = Math.random() * 0.01 + 0.005;
             for (let x = 0; x <= canvas.width; x += 10) {
-                let y = 320 + Math.sin(x * 0.015) * 45 + Math.cos(x * 0.008) * 30;
-                terrainHeights.push({ x: x, y: Math.min(380, Math.max(150, y)) });
+                let y = 300 + Math.sin(x * seed1) * 40 + Math.cos(x * seed2) * 30;
+                terrainHeights.push({ x: x, y: Math.min(370, Math.max(160, y)) });
+            }
+
+            let obstacleCount = 3 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < obstacleCount; i++) {
+                let obsX = 220 + Math.random() * 360;
+                let obsY = getTerrainY(obsX);
+                let type = Math.random() > 0.5 ? 'tree' : 'rock';
+                obstacles.push({ x: obsX, y: obsY, type: type });
             }
         }
 
@@ -392,8 +444,16 @@
                 let dist = Math.abs(p.x - hitX);
                 if (dist < radius) {
                     let depth = Math.sqrt(radius * radius - dist * dist) * 0.6;
-                    p.y = Math.min(400, p.y + depth);
+                    p.y = Math.min(390, p.y + depth);
                 }
+            });
+            applyTankGravity();
+        }
+
+        function applyTankGravity() {
+            [redTank, blueTank].forEach(tank => {
+                let targetY = getTerrainY(tank.x) - 15;
+                tank.y = targetY;
             });
         }
 
@@ -403,10 +463,8 @@
             let initialTrials = Math.max(0, 5 - level);
             redTrialsLeft = initialTrials;
             blueTrialsLeft = initialTrials;
-
             redShields = level >= 5 ? 2 : (level >= 4 ? 1 : 0);
             blueShields = level >= 5 ? 2 : (level >= 4 ? 1 : 0);
-
             document.getElementById('levelText').innerText = currentLevel;
             updateTrialUI();
             generateTerrain();
@@ -414,8 +472,8 @@
         }
 
         function spawnNewTanks() {
-            redTank.x = 60 + Math.random() * 180;
-            blueTank.x = 560 + Math.random() * 180;
+            redTank.x = 80 + Math.random() * 100;
+            blueTank.x = 620 + Math.random() * 100;
             redTank.y = getTerrainY(redTank.x) - 15;
             blueTank.y = getTerrainY(blueTank.x) - 15;
             redTank.angle = 45; blueTank.angle = 135;
@@ -451,7 +509,6 @@
 
         function fireCannon() {
             if (bullet) return;
-
             if (turn === 'red' && redTrialsLeft > 0) redTrialsLeft--;
             else if (turn === 'blue' && blueTrialsLeft > 0) blueTrialsLeft--;
             updateTrialUI();
@@ -463,11 +520,12 @@
             bulletMaxHeight = tank.y;
 
             bullet = {
-                x: tank.x + Math.cos(rad) * 25,
-                y: tank.y - Math.sin(rad) * 25,
+                x: tank.x + Math.cos(rad) * 28,
+                y: (tank.y - 10) - Math.sin(rad) * 28,
                 vx: Math.cos(rad) * speed,
                 vy: -Math.sin(rad) * speed,
-                age: 0
+                age: 0,
+                piercing: tank.armorPiercing
             };
         }
 
@@ -480,15 +538,28 @@
                 bullet.age++;
 
                 if (bullet.y < bulletMaxHeight) bulletMaxHeight = bullet.y;
-
                 if (bullet.x <= 0) { bullet.x = 0; bullet.vx = -bullet.vx * 0.75; }
                 else if (bullet.x >= canvas.width) { bullet.x = canvas.width; bullet.vx = -bullet.vx * 0.75; }
+
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    let obs = obstacles[i];
+                    if (Math.hypot(bullet.x - obs.x, bullet.y - obs.y) < 18) {
+                        if (bullet.piercing) {
+                            obstacles.splice(i, 1);
+                        } else {
+                            bullet = null;
+                            alert("💥 砲彈擊中障礙物且無穿甲彈效果，彈道消散！");
+                            endTurnSequence();
+                            return;
+                        }
+                    }
+                }
 
                 let groundY = getTerrainY(bullet.x);
                 let activeTank = turn === 'red' ? redTank : blueTank;
                 const t = langData[currentLang];
                 
-                if (bullet.age > 12 && Math.hypot(bullet.x - activeTank.x, bullet.y - activeTank.y) < 22) {
+                if (bullet.age > 15 && Math.hypot(bullet.x - activeTank.x, bullet.y - activeTank.y) < 22) {
                     bullet = null;
                     let currentShields = turn === 'red' ? redShields : blueShields;
                     if (currentShields > 0) {
@@ -537,7 +608,6 @@
         function endTurnSequence() {
             turn = (turn === 'red') ? 'blue' : 'red';
             updateUI();
-
             if (gameMode === 'hotseat') {
                 const t = langData[currentLang];
                 let nextTeamName = turn === 'red' ? t.redTeamP1 : t.blueTeamP2;
@@ -551,41 +621,69 @@
         }
 
         function checkRoundWinOrRespawn() {
+            const t = langData[currentLang];
             if (redDestroyed >= 3 || blueDestroyed >= 3) {
-                let winner = redDestroyed >= 3 ? langData[currentLang].blueTeam : langData[currentLang].redTeam;
-                const t = langData[currentLang];
-                
-                let learningAnalytics = `
-📊 [${currentLevel}] ${t.analysisTitle}
-🏆 ${t.analysisWinner}${winner}
---------------------------------------------------
-1. [Trigonometry & Vectors]:
-   - Optimal use of angle components and velocity vectors.
-2. [Wind Resistance & Shields]:
-   - Wind vector: ${(windPower*10).toFixed(1)}. Shields protected against fatal hits.
-                `;
-                alert(learningAnalytics);
+                let roundWinnerName = redDestroyed >= 3 ? t.redRoundWin : t.blueRoundWin;
+                alert(`🏆 判定結果：\n${roundWinnerName}`);
 
-                if (winner === langData[currentLang].redTeam) redMatchWins++; else blueMatchWins++;
-                checkMatchWin();
+                if (redDestroyed >= 3) redMatchWins++; 
+                else blueMatchWins++;
+
+                checkMatchWinOrShop();
             } else {
                 spawnNewTanks();
                 endTurnSequence();
             }
         }
 
+        function checkMatchWinOrShop() {
+            if (redMatchWins >= 3 || blueMatchWins >= 3 || currentLevel >= 5) {
+                checkMatchWin();
+            } else {
+                openShop();
+            }
+        }
+
+        function openShop() {
+            let shopperName = turn === 'red' ? "🔴 紅隊" : "🔵 藍隊";
+            let shopperScore = turn === 'red' ? redScore : blueScore;
+            document.getElementById('current-shopper-info').innerText = `${shopperName} 累積總分: ${shopperScore} 分`;
+            document.getElementById('shop-screen').style.display = 'flex';
+        }
+
+        function buyUpgrade(item) {
+            let currentScore = turn === 'red' ? redScore : blueScore;
+            if (item === 'radar' && currentScore >= 150) {
+                if (turn === 'red') { redScore -= 150; redTrialsLeft += 1; }
+                else { blueScore -= 150; blueTrialsLeft += 1; }
+                alert("✅ 成功購買【雷達】！試瞄次數 +1");
+            } else if (item === 'armorPiercing' && currentScore >= 200) {
+                if (turn === 'red') { redScore -= 200; redTank.armorPiercing = true; }
+                else { blueScore -= 200; blueTank.armorPiercing = true; }
+                alert("✅ 成功購買【穿甲彈】！本局砲彈具備貫穿障礙能力");
+            } else if (item === 'extraShield' && currentScore >= 250) {
+                if (turn === 'red') { redScore -= 250; redShields += 1; }
+                else { blueScore -= 250; blueShields += 1; }
+                alert("✅ 成功購買【跳彈裝甲】！防護罩 +1");
+            } else {
+                alert("❌ 積分不足，無法購買此道具！");
+            }
+            updateTrialUI();
+        }
+
+        function closeShop() {
+            document.getElementById('shop-screen').style.display = 'none';
+            initLevel(currentLevel + 1);
+        }
+
         function checkMatchWin() {
             const t = langData[currentLang];
-            if (redMatchWins >= 3) {
+            if (redMatchWins >= 3 || (redScore > blueScore && currentLevel >= 5)) {
                 showCelebration(`🔴 ${t.redTeam}`, redScore, "#ff5252");
-            } else if (blueMatchWins >= 3) {
+            } else if (blueMatchWins >= 3 || (blueScore > redScore && currentLevel >= 5)) {
                 showCelebration(`🔵 ${t.blueTeam}`, blueScore, "#448aff");
             } else {
-                if (currentLevel < 5) initLevel(currentLevel + 1);
-                else {
-                    if (redScore >= blueScore) showCelebration(`🔴 ${t.redTeam}`, redScore, "#ff5252");
-                    else showCelebration(`🔵 ${t.blueTeam}`, blueScore, "#448aff");
-                }
+                showCelebration(`🤝 雙方平手`, redScore, "#f1c40f");
             }
         }
 
@@ -593,7 +691,7 @@
             const t = langData[currentLang];
             document.getElementById('champion-title').innerText = `${winnerName} ${t.championSuffix}`;
             document.getElementById('champion-title').style.color = colorHex;
-            document.getElementById('champion-stats').innerText = t.statsText;
+            document.getElementById('champion-stats').innerText = `總得分高達 ${score} 分！完美平衡了經濟得分與戰術科技樹的頂尖對決！`;
             document.getElementById('celebration-screen').style.display = 'flex';
         }
 
@@ -632,24 +730,27 @@
             let rad = (tank.angle * Math.PI) / 180;
             let speed = tank.power * 0.25;
 
-            let simX = tank.x + Math.cos(rad) * 25;
-            let simY = tank.y - Math.sin(rad) * 25;
+            let simX = tank.x + Math.cos(rad) * 32;
+            let simY = (tank.y - 10) - Math.sin(rad) * 32;
             let simVx = Math.cos(rad) * speed;
             let simVy = -Math.sin(rad) * speed;
 
-            ctx.strokeStyle = turn === 'red' ? 'rgba(255, 82, 82, 0.7)' : 'rgba(68, 138, 255, 0.7)';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([5, 5]);
+            let maxSteps = Math.max(20, 75 - (currentLevel * 11));
+
+            ctx.strokeStyle = turn === 'red' ? 'rgba(255, 82, 82, 0.65)' : 'rgba(68, 138, 255, 0.65)';
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([4, 4]);
             ctx.beginPath();
             ctx.moveTo(simX, simY);
 
-            for (let i = 0; i < 70; i++) {
+            for (let i = 0; i < maxSteps; i++) {
                 simX += simVx;
                 simY += simVy;
                 simVy += 0.22;
                 simVx += windPower;
 
-                if (simX <= 0 || simX >= canvas.width) simVx = -simVx * 0.75;
+                if (simX <= 0) { simX = 0; simVx = -simVx * 0.75; }
+                else if (simX >= canvas.width) { simX = canvas.width; simVx = -simVx * 0.75; }
 
                 let groundY = getTerrainY(simX);
                 if (simY >= groundY || simY > canvas.height) break;
@@ -687,6 +788,18 @@
             ctx.closePath();
             ctx.fill();
 
+            obstacles.forEach(obs => {
+                if (obs.type === 'tree') {
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(obs.x - 4, obs.y - 20, 8, 20);
+                    ctx.fillStyle = '#2d5a27';
+                    ctx.beginPath(); ctx.arc(obs.x, obs.y - 25, 14, 0, Math.PI * 2); ctx.fill();
+                } else {
+                    ctx.fillStyle = '#7f8c8d';
+                    ctx.beginPath(); ctx.arc(obs.x, obs.y - 10, 12, Math.PI, 0, false); ctx.fill();
+                }
+            });
+
             drawTrajectory();
 
             // 紅隊坦克
@@ -723,8 +836,8 @@
             const t = langData[currentLang];
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 15px sans-serif';
-            ctx.fillText(`🔴 ${t.redTeam}: ${redScore} | ${t.level === 'Level' ? 'Dmg' : '損毀'}: ${redDestroyed}/3`, 20, 25);
-            ctx.fillText(`🔵 ${t.blueTeam}: ${blueScore} | ${t.level === 'Level' ? 'Dmg' : '損毀'}: ${blueDestroyed}/3`, canvas.width - 250, 25);
+            ctx.fillText(`🔴 ${t.redTeam}: ${redScore} | 擊毀: ${redDestroyed}/3`, 20, 25);
+            ctx.fillText(`🔵 ${t.blueTeam}: ${blueScore} | 擊毀: ${blueDestroyed}/3`, canvas.width - 250, 25);
         }
 
         function loop() {
