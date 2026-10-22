@@ -140,7 +140,7 @@
             <div style="font-size: 70px; margin-bottom: 10px;">🏆</div>
             <h1 id="champion-title" style="color: #ff5252; font-size: 36px;">紅隊 榮獲總冠軍！</h1>
             <div class="designer-tag" style="margin: 10px 0; font-size: 16px;">國立高雄師範大學 劉世閔博士 總設計</div>
-            <p style="color: #ecf0f1; font-size: 17px; margin: 20px 0;">經過五局多變地形激戰，展現了卓越的物理計算能力！</p>
+            <p style="color: #ecf0f1; font-size: 17px; margin: 20px 0;">經過五局激戰，展現了卓越的物理計算能力！</p>
             <button class="mode-btn" onclick="returnToLobby()" style="margin-top: 15px; width: 220px;">🔄 再次挑戰</button>
         </div>
     </div>
@@ -150,7 +150,7 @@
         <div>局數: <span id="levelText" style="color: #f1c40f; font-weight: bold;">1</span>/5</div>
         <div>回合: <span id="turnText" style="color: #ff5252; font-weight: bold;">紅隊</span></div>
         <div>風速: <span id="windText" style="color: #00e676;">0.0</span></div>
-        <div>試瞄: <span id="trialText" style="color: #00e676; font-weight: bold;">4</span></div>
+        <div>試瞄次數: <span id="trialText" style="color: #00e676; font-weight: bold;">4</span></div>
         <div class="control-group">
             <span>移動:</span>
             <button onclick="moveTank(-15)" style="background: #2980b9;" title="向後移動">◀</button>
@@ -173,30 +173,15 @@
         <canvas id="gameCanvas" width="800" height="420"></canvas>
     </div>
 
-    <!-- 💡 動態修正提示面板（顯示前一次設定值） -->
+    <!-- 💡 動態教育提示面板（試瞄歸零時顯示前一次數據供學生修正） -->
     <div id="math-panel">
-        💡 戰術提示：試瞄線用盡時進入盲狙空瞄期，下方將即時提供您前一次的設定值以供數據修正！
+        💡 寓教於樂提示：試瞄線歸零後將進入科學盲狙期，下方將提供前一次設定值以供學生修正數據！
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let gameActive = false;
-
-        window.startGame = function() {
-            gameActive = true;
-            document.getElementById('lobby').style.display = 'none';
-            document.getElementById('round-win-screen').style.display = 'none';
-            document.getElementById('celebration-screen').style.display = 'none';
-            initGameLoop();
-        };
-
-        window.returnToLobby = function() {
-            gameActive = false;
-            document.getElementById('round-win-screen').style.display = 'none';
-            document.getElementById('celebration-screen').style.display = 'none';
-            document.getElementById('lobby').style.display = 'flex';
-        };
 
         let currentLevel = 1, turn = 'red', terrainHeights = [], windPower = 0.0; 
         let redScore = 0, blueScore = 0;
@@ -205,29 +190,51 @@
         let blueTank = { x: 680, y: 320, angle: 45, power: 50 };
         let redTrialsLeft = 4, blueTrialsLeft = 4;
         
-        // 🎯 記錄各隊前一次的發射設定（用於空瞄修正提示）
+        // 🎯 記錄各隊前一次的發射設定（供無試瞄時的數據修正參考）
         let redLastShot = { angle: 45, power: 50, fired: false };
         let blueLastShot = { angle: 45, power: 50, fired: false };
 
         let bullet = null;
         let explosions = [];
 
+        window.startGame = function() {
+            bullet = null;
+            explosions = [];
+            currentLevel = 1;
+            redScore = 0;
+            blueScore = 0;
+            redDestroyed = 0;
+            blueDestroyed = 0;
+            turn = 'red';
+            gameActive = true;
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('round-win-screen').style.display = 'none';
+            document.getElementById('celebration-screen').style.display = 'none';
+            initLevel();
+        };
+
+        window.returnToLobby = function() {
+            bullet = null;
+            explosions = [];
+            gameActive = false;
+            document.getElementById('round-win-screen').style.display = 'none';
+            document.getElementById('celebration-screen').style.display = 'none';
+            document.getElementById('lobby').style.display = 'flex';
+        };
+
         function generateTerrain() {
             terrainHeights = [];
-            windPower = Number(((Math.random() - 0.5) * (0.6 + currentLevel * 0.1)).toFixed(1));
+            windPower = Number(((Math.random() - 0.5) * (0.5 + currentLevel * 0.1)).toFixed(1));
             document.getElementById('windText').innerText = windPower > 0 ? `+${windPower}` : windPower;
-            
-            let freq1 = 0.01 + (Math.random() * 0.015);
-            let freq2 = 0.02 + (Math.random() * 0.02);
-            let amplitude = 30 + (currentLevel * 5);
-
             for (let x = 0; x <= canvas.width; x += 10) {
-                let y = 290 + Math.sin(x * freq1) * amplitude + Math.cos(x * freq2) * (amplitude * 0.6);
-                terrainHeights.push({ x: x, y: Math.min(370, Math.max(170, y)) });
+                let y = 300 + Math.sin(x * 0.015) * 35 + Math.cos(x * 0.02) * 20;
+                terrainHeights.push({ x: x, y: Math.min(370, Math.max(180, y)) });
             }
         }
 
         function getTerrainY(x) {
+            if (x < 0) x = 0;
+            if (x > canvas.width) x = canvas.width;
             for (let i = 0; i < terrainHeights.length - 1; i++) {
                 if (x >= terrainHeights[i].x && x <= terrainHeights[i+1].x) {
                     let t = (x - terrainHeights[i].x) / (terrainHeights[i+1].x - terrainHeights[i].x);
@@ -237,48 +244,38 @@
             return 320;
         }
 
-        function destroyTerrain(hitX, radius) {
-            terrainHeights.forEach(p => {
-                let dist = Math.abs(p.x - hitX);
-                if (dist < radius) {
-                    let depth = Math.sqrt(radius * radius - dist * dist) * 0.5;
-                    p.y = Math.min(390, p.y + depth);
-                }
-            });
-            redTank.y = getTerrainY(redTank.x) - 15;
-            blueTank.y = getTerrainY(blueTank.x) - 15;
-        }
-
         function spawnTanks() {
-            redTank.x = 120; 
-            blueTank.x = 680;
+            bullet = null;
+            explosions = [];
+            redTank.x = 120; blueTank.x = 680;
             redTank.y = getTerrainY(redTank.x) - 15;
             blueTank.y = getTerrainY(blueTank.x) - 15;
             redTank.angle = 45; blueTank.angle = 45;
             redTank.power = 50; blueTank.power = 50;
-            bullet = null;
-        }
-
-        function initGameLoop() {
-            currentLevel = 1;
-            redScore = 0; blueScore = 0;
-            turn = 'red';
-            redLastShot = { angle: 45, power: 50, fired: false };
-            blueLastShot = { angle: 45, power: 50, fired: false };
-            initLevel();
         }
 
         function initLevel() {
+            bullet = null;
+            explosions = [];
             redDestroyed = 0; 
             blueDestroyed = 0;
             let trialsConfig = Math.max(0, 5 - currentLevel);
             redTrialsLeft = trialsConfig;
             blueTrialsLeft = trialsConfig;
+            redLastShot = { angle: 45, power: 50, fired: false };
+            blueLastShot = { angle: 45, power: 50, fired: false };
 
             generateTerrain();
             spawnTanks();
             updateUI();
         }
+
+        window.proceedToNextLevel = function() {
+            document.getElementById('round-win-screen').style.display = 'none';
+            currentLevel++;
+            initLevel();
+            gameActive = true;
+        };
 
         window.moveTank = function(amount) {
             if (!gameActive || bullet) return;
@@ -288,10 +285,8 @@
             let maxX = (turn === 'red') ? 350 : 740;
 
             let nextX = Math.max(minX, Math.min(maxX, tank.x + amount));
-            let nextY = getTerrainY(nextX) - 15;
-
             tank.x = nextX;
-            tank.y = nextY;
+            tank.y = getTerrainY(nextX) - 15;
         };
 
         window.adjustAngle = function(amount) {
@@ -313,7 +308,7 @@
 
             let tank = (turn === 'red') ? redTank : blueTank;
 
-            // 🎯 記錄該隊伍發射前的前一次設定值
+            // 🎯 記錄該隊伍的發射設定（供無試瞄時參考修正）
             if (turn === 'red') {
                 redLastShot = { angle: tank.angle, power: tank.power, fired: true };
                 if (redTrialsLeft > 0) redTrialsLeft--;
@@ -327,27 +322,29 @@
             let speed = tank.power * 0.25;
             let dir = (turn === 'red') ? 1 : -1;
 
+            // ⚖️ 紅藍雙方物理發射引擎完全對稱標準化
             bullet = {
                 x: tank.x + dir * Math.cos(rad) * 28,
                 y: (tank.y - 10) - Math.sin(rad) * 28,
                 vx: dir * Math.cos(rad) * speed,
                 vy: -Math.sin(rad) * speed,
+                color: (turn === 'red') ? '#ff5252' : '#448aff',
                 age: 0
             };
         };
 
         function triggerExplosion(x, y, color) {
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 35; i++) {
                 let angle = Math.random() * Math.PI * 2;
-                let speed = Math.random() * 4 + 2;
+                let speed = Math.random() * 6 + 2;
                 explosions.push({
                     x: x, y: y,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
-                    radius: Math.random() * 4 + 2,
+                    radius: Math.random() * 5 + 2,
                     color: color,
                     alpha: 1.0,
-                    decay: 0.04
+                    decay: 0.03
                 });
             }
         }
@@ -374,6 +371,7 @@
                 let opponentTank = (turn === 'red') ? blueTank : redTank;
                 let activeTank = (turn === 'red') ? redTank : blueTank;
 
+                // 牆壁撞球反彈
                 if (bullet.x <= 0) {
                     bullet.x = 0;
                     bullet.vx = -bullet.vx * 0.75;
@@ -382,9 +380,8 @@
                     bullet.vx = -bullet.vx * 0.75;
                 }
 
-                // 1. 擊中對方戰車
                 if (bullet.age > 12 && Math.abs(bullet.x - opponentTank.x) < 18 && Math.abs(bullet.y - opponentTank.y) < 18) {
-                    triggerExplosion(bullet.x, bullet.y, turn === 'red' ? '#ff5252' : '#448aff');
+                    triggerExplosion(opponentTank.x, opponentTank.y, turn === 'red' ? '#ff5252' : '#448aff');
                     bullet = null;
                     let hitScore = Math.floor(150 * currentLevel);
                     if (turn === 'red') { redScore += hitScore; redDestroyed++; }
@@ -393,18 +390,20 @@
                     return;
                 }
 
-                // 2. 自炸
                 if (bullet.age > 12 && Math.abs(bullet.x - activeTank.x) < 18 && Math.abs(bullet.y - activeTank.y) < 18) {
-                    triggerExplosion(bullet.x, bullet.y, '#f1c40f');
+                    triggerExplosion(activeTank.x, activeTank.y, '#f1c40f');
                     bullet = null;
                     if (turn === 'red') blueDestroyed++; else redDestroyed++;
                     checkRoundEnd();
                     return;
                 }
 
-                // 3. 落地或出界 -> 自動換邊
-                if (bullet.y >= groundY || bullet.y > canvas.height) {
-                    if (bullet.y >= groundY) triggerExplosion(bullet.x, groundY, '#e67e22');
+                if (bullet.y >= groundY) {
+                    triggerExplosion(bullet.x, groundY, '#e67e22');
+                    bullet = null;
+                    turn = (turn === 'red') ? 'blue' : 'red';
+                    updateUI();
+                } else if (bullet.y > canvas.height) {
                     bullet = null;
                     turn = (turn === 'red') ? 'blue' : 'red';
                     updateUI();
@@ -413,7 +412,9 @@
         }
 
         function checkRoundEnd() {
+            bullet = null;
             if (redDestroyed >= 3 || blueDestroyed >= 3) {
+                gameActive = false;
                 let winnerText = (redDestroyed >= 3) ? "🔴 紅隊" : "🔵 藍隊";
                 if (currentLevel >= 5) {
                     document.getElementById('champion-title').innerText = `${winnerText} 榮獲總冠軍！`;
@@ -421,7 +422,7 @@
                 } else {
                     document.getElementById('round-winner-title').innerText = `${winnerText} 贏得第 ${currentLevel} 局勝利！`;
                     document.getElementById('round-winner-title').style.color = (redDestroyed >= 3) ? '#ff5252' : '#448aff';
-                    document.getElementById('round-winner-stats').innerText = `紅分: ${redScore} | 藍分: ${blueScore}，即將隨機變換下一關地形！`;
+                    document.getElementById('round-winner-stats').innerText = `紅分: ${redScore} | 藍分: ${blueScore}，即將變換全新地形進入下一局！`;
                     document.getElementById('round-win-screen').style.display = 'flex';
                 }
             } else {
@@ -431,27 +432,19 @@
             }
         }
 
-        window.proceedToNextLevel = function() {
-            document.getElementById('round-win-screen').style.display = 'none';
-            currentLevel++;
-            redLastShot = { angle: 45, power: 50, fired: false };
-            blueLastShot = { angle: 45, power: 50, fired: false };
-            initLevel();
-        };
-
         function updateTrialUI() {
             let currentTrials = (turn === 'red') ? redTrialsLeft : blueTrialsLeft;
             document.getElementById('trialText').innerText = currentTrials;
             
-            // 🎯 空瞄狀態提示：若試瞄次數為 0 且前一次已發射過，在下方提示面板顯示前一次設定值
+            // 🎯 科學探索盲狙提示：試瞄線歸零時，顯示前一次的數據供學生參考修正
             let lastShot = (turn === 'red') ? redLastShot : blueLastShot;
             let mathPanel = document.getElementById('math-panel');
             let teamName = (turn === 'red') ? '紅隊' : '藍隊';
 
             if (currentTrials <= 0 && lastShot.fired) {
-                mathPanel.innerHTML = `⚠️ 【${teamName} 進入盲狙空瞄期】試瞄線已關閉！您前一次發射設定：仰角 <span style="color:#00ff66;">${lastShot.angle}°</span>、力度 <span style="color:#00ff66;">${lastShot.power}</span>，請依此數據進行誤差修正！`;
+                mathPanel.innerHTML = `⚠️ 【${teamName} 科學盲狙期】試瞄線已關閉！前一次發射數據：仰角 <span style="color:#00ff66;">${lastShot.angle}°</span>、力度 <span style="color:#00ff66;">${lastShot.power}</span>，請依風向與地形自主修正！`;
             } else {
-                mathPanel.innerHTML = `💡 戰術提示：點擊上方【◀ ▶】可微調戰車位置，善用試瞄線計算彈道軌跡！`;
+                mathPanel.innerHTML = `💡 寓教於樂提示：結合角度、力度、風速與地形起伏，善用試瞄線與戰車移動來精準打擊！`;
             }
         }
 
@@ -509,7 +502,6 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (!gameActive) return;
 
-            // 地形
             ctx.fillStyle = '#27ae60';
             ctx.beginPath();
             ctx.moveTo(0, canvas.height);
@@ -540,7 +532,7 @@
 
             // 砲彈
             if (bullet) {
-                ctx.fillStyle = '#f1c40f';
+                ctx.fillStyle = bullet.color || '#f1c40f';
                 ctx.beginPath(); ctx.arc(bullet.x, bullet.y, 6, 0, Math.PI * 2); ctx.fill();
             }
 
@@ -553,7 +545,6 @@
                 ctx.restore();
             });
 
-            // 即時比分與擊毀次數顯示
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 15px sans-serif';
             ctx.fillText(`🔴 紅隊積分: ${redScore} | 擊毀: ${redDestroyed}/3`, 20, 25);
