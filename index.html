@@ -205,7 +205,6 @@
             blueScore = 0;
             redDestroyed = 0;
             blueDestroyed = 0;
-            turn = 'red';
             gameActive = true;
             document.getElementById('lobby').style.display = 'none';
             document.getElementById('round-win-screen').style.display = 'none';
@@ -264,6 +263,9 @@
             blueTrialsLeft = trialsConfig;
             redLastShot = { angle: 45, power: 50, fired: false };
             blueLastShot = { angle: 45, power: 50, fired: false };
+
+            // 🎯 確保輪流先攻：奇數局（第1、3、5局）紅方先攻，偶數局（第2、4局）藍方先攻
+            turn = (currentLevel % 2 === 1) ? 'red' : 'blue';
 
             generateTerrain();
             spawnTanks();
